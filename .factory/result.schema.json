@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The worker-to-supervisor contract.",
+  "oneOf": [
+    { "type": "object", "properties": { "status": { "const": "success" }, "summary": { "type": "string" }, "tests": { "type": "array", "items": { "type": "string" } }, "reviewSummary": { "type": "string" } }, "required": ["status", "summary", "tests", "reviewSummary"], "additionalProperties": false },
+    { "type": "object", "properties": { "status": { "const": "needs_human" }, "category": { "enum": ["requirement_ambiguity", "requirement_impossible", "missing_access", "destructive_action", "repeated_failure"] }, "summary": { "type": "string" }, "question": { "type": "string" }, "recommendation": { "type": ["string", "null"] }, "evidence": { "type": ["array", "null"], "items": { "type": "string" } } }, "required": ["status", "category", "summary", "question", "recommendation", "evidence"], "additionalProperties": false },
+    { "type": "object", "properties": { "status": { "const": "failed" }, "summary": { "type": "string" }, "attempts": { "type": "array", "items": { "type": "string" } } }, "required": ["status", "summary", "attempts"], "additionalProperties": false }
+  ]
+}
