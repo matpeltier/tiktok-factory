@@ -1,0 +1,457 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/matpeltier/tiktok-factory/blob/main/schemas/canonical_ir_v0_1.json",
+  "title": "CanonicalIR v0.1",
+  "description": "A compact observed/inferred projection of Full CreativeIR for ranking and modeling. Generation instructions are intentionally excluded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "canonical_ir_version",
+    "projection_version",
+    "source",
+    "observed",
+    "inferred"
+  ],
+  "properties": {
+    "canonical_ir_version": {
+      "const": "0.1"
+    },
+    "projection_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "video_id",
+        "duration_seconds",
+        "aspect_ratio",
+        "language"
+      ],
+      "properties": {
+        "video_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "duration_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "vertical_9_16",
+            "vertical_other",
+            "square",
+            "horizontal_16_9",
+            "horizontal_other",
+            "unknown"
+          ]
+        },
+        "language": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hook",
+        "narrative",
+        "shots",
+        "marketing",
+        "commercial"
+      ],
+      "properties": {
+        "hook": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hook_types",
+            "first_text_time_seconds",
+            "key_text"
+          ],
+          "properties": {
+            "hook_types": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "curiosity_gap",
+                  "challenge",
+                  "countdown",
+                  "narrative_promise",
+                  "visual_novelty",
+                  "product_promise",
+                  "other"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "first_text_time_seconds": {
+              "type": "number",
+              "minimum": 0
+            },
+            "key_text": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "narrative": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "arc",
+            "beat_labels"
+          ],
+          "properties": {
+            "arc": {
+              "type": "string",
+              "enum": [
+                "setup_challenge_search_reveal",
+                "setup_payoff",
+                "problem_solution",
+                "problem_proof_cta",
+                "other"
+              ]
+            },
+            "beat_labels": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "setup",
+                  "hook",
+                  "challenge",
+                  "search",
+                  "reveal",
+                  "payoff",
+                  "product_demo",
+                  "product_proof",
+                  "cta",
+                  "other"
+                ]
+              }
+            }
+          }
+        },
+        "shots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/canonical_shot"
+          }
+        },
+        "marketing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "engagement_devices"
+          ],
+          "properties": {
+            "engagement_devices": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "explicit_question",
+                  "countdown",
+                  "hidden_object",
+                  "delayed_reveal",
+                  "before_after",
+                  "social_proof",
+                  "personal_experience",
+                  "other"
+                ]
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "commercial": {
+          "$ref": "#/$defs/canonical_commercial"
+        }
+      }
+    },
+    "inferred": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "concept_summary",
+        "format",
+        "audience_clusters",
+        "hook_mechanisms",
+        "narrative_arc",
+        "marketing_mechanisms",
+        "commercial"
+      ],
+      "properties": {
+        "concept_summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "challenge",
+            "tutorial",
+            "story",
+            "demonstration",
+            "list",
+            "reaction",
+            "product_ad",
+            "other"
+          ]
+        },
+        "audience_clusters": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "hook_mechanisms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "curiosity_gap",
+              "challenge",
+              "countdown",
+              "narrative_promise",
+              "visual_novelty",
+              "product_promise",
+              "other"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "narrative_arc": {
+          "type": "string",
+          "enum": [
+            "setup_challenge_search_reveal",
+            "setup_payoff",
+            "problem_solution",
+            "problem_proof_cta",
+            "other"
+          ]
+        },
+        "marketing_mechanisms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "curiosity_gap",
+              "challenge",
+              "time_pressure",
+              "participation",
+              "payoff_reveal",
+              "visual_novelty",
+              "problem_agitation",
+              "proof",
+              "social_proof",
+              "other"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "commercial": {
+          "$ref": "#/$defs/canonical_commercial_inferred"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "canonical_shot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shot_id",
+        "time_range",
+        "visual_subjects",
+        "framing",
+        "camera_motion",
+        "text_roles",
+        "dialogue_present",
+        "music_present",
+        "transition_in"
+      ],
+      "properties": {
+        "shot_id": {
+          "type": "string",
+          "pattern": "^shot_[0-9]+$"
+        },
+        "time_range": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start_seconds",
+            "end_seconds"
+          ],
+          "properties": {
+            "start_seconds": {
+              "type": "number",
+              "minimum": 0
+            },
+            "end_seconds": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "visual_subjects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "framing": {
+          "type": "string",
+          "enum": [
+            "extreme_wide",
+            "wide",
+            "medium",
+            "close_up",
+            "extreme_close_up",
+            "graphic_card",
+            "unknown"
+          ]
+        },
+        "camera_motion": {
+          "type": "string",
+          "enum": [
+            "static",
+            "pan",
+            "tilt",
+            "zoom",
+            "dolly",
+            "tracking",
+            "handheld",
+            "graphic_animation",
+            "unknown"
+          ]
+        },
+        "text_roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "context",
+              "instruction",
+              "challenge",
+              "countdown",
+              "answer",
+              "branding",
+              "product_claim",
+              "cta",
+              "other"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "dialogue_present": {
+          "type": "boolean"
+        },
+        "music_present": {
+          "type": "boolean"
+        },
+        "transition_in": {
+          "type": "string",
+          "enum": [
+            "start",
+            "cut",
+            "fade",
+            "dissolve",
+            "wipe",
+            "match_cut",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "canonical_commercial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_present"
+      ],
+      "properties": {
+        "product_present": {
+          "type": "string",
+          "enum": [
+            "present",
+            "absent",
+            "uncertain"
+          ]
+        },
+        "first_product_appearance_s": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "canonical_commercial_inferred": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "proof_type",
+        "cta_type"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_applicable",
+            "affiliate",
+            "direct_sale",
+            "brand_awareness",
+            "uncertain"
+          ]
+        },
+        "proof_type": {
+          "type": "string",
+          "enum": [
+            "not_applicable",
+            "demonstration",
+            "before_after",
+            "testimonial",
+            "comparison",
+            "social_proof",
+            "expertise",
+            "uncertain"
+          ]
+        },
+        "cta_type": {
+          "type": "string",
+          "enum": [
+            "not_applicable",
+            "shop_now",
+            "learn_more",
+            "download",
+            "sign_up",
+            "comment",
+            "share",
+            "follow",
+            "other",
+            "uncertain"
+          ]
+        }
+      }
+    }
+  }
+}

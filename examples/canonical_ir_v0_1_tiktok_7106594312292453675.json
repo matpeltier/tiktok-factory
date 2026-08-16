@@ -1,0 +1,47 @@
+{
+  "canonical_ir_version": "0.1",
+  "projection_version": "full-to-canonical-v0.1",
+  "source": {
+    "video_id": "7106594312292453675",
+    "duration_seconds": 24.451,
+    "aspect_ratio": "vertical_9_16",
+    "language": "English"
+  },
+  "observed": {
+    "hook": {
+      "hook_types": ["curiosity_gap", "challenge", "countdown", "visual_novelty"],
+      "first_text_time_seconds": 0.7,
+      "key_text": ["Gorillo built a pond for a family of frogs...", "how many frogs can you find in 10 seconds?"]
+    },
+    "narrative": {
+      "arc": "setup_challenge_search_reveal",
+      "beat_labels": ["setup", "challenge", "search", "reveal", "payoff"]
+    },
+    "shots": [
+      {"shot_id": "shot_01", "time_range": {"start_seconds": 0, "end_seconds": 4.97}, "visual_subjects": ["player avatar", "pond", "grassy field"], "framing": "wide", "camera_motion": "static", "text_roles": ["context"], "dialogue_present": false, "music_present": true, "transition_in": "start"},
+      {"shot_id": "shot_02", "time_range": {"start_seconds": 4.97, "end_seconds": 7.71}, "visual_subjects": ["pixel-art frog", "question text"], "framing": "graphic_card", "camera_motion": "static", "text_roles": ["challenge"], "dialogue_present": false, "music_present": true, "transition_in": "cut"},
+      {"shot_id": "shot_03", "time_range": {"start_seconds": 7.71, "end_seconds": 19.75}, "visual_subjects": ["finished pond", "frogs", "vegetation"], "framing": "wide", "camera_motion": "static", "text_roles": [], "dialogue_present": false, "music_present": true, "transition_in": "cut"},
+      {"shot_id": "shot_04", "time_range": {"start_seconds": 19.75, "end_seconds": 21.09}, "visual_subjects": ["frog icons", "answer number"], "framing": "graphic_card", "camera_motion": "static", "text_roles": ["answer"], "dialogue_present": false, "music_present": true, "transition_in": "cut"},
+      {"shot_id": "shot_05", "time_range": {"start_seconds": 21.09, "end_seconds": 24.451}, "visual_subjects": ["finished pond", "frogs", "landscape"], "framing": "wide", "camera_motion": "static", "text_roles": [], "dialogue_present": false, "music_present": true, "transition_in": "cut"}
+    ],
+    "marketing": {
+      "engagement_devices": ["explicit_question", "countdown", "hidden_object", "delayed_reveal"]
+    },
+    "commercial": {
+      "product_present": "absent"
+    }
+  },
+  "inferred": {
+    "concept_summary": "A Minecraft frog-counting challenge: build the pond, let the viewer search, then reveal 15.",
+    "format": "challenge",
+    "audience_clusters": ["Minecraft gameplay", "visual puzzles", "participatory short-form challenges"],
+    "hook_mechanisms": ["curiosity_gap", "challenge", "countdown", "visual_novelty"],
+    "narrative_arc": "setup_challenge_search_reveal",
+    "marketing_mechanisms": ["curiosity_gap", "challenge", "time_pressure", "participation", "payoff_reveal"],
+    "commercial": {
+      "status": "not_applicable",
+      "proof_type": "not_applicable",
+      "cta_type": "not_applicable"
+    }
+  }
+}

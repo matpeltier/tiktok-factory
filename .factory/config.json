@@ -5,7 +5,7 @@
   "autoMerge": true,
   "baseBranch": "main",
   "workflowCommand": "codex-workflow",
-  "orcaCommand": "orca-ide",
+  "orcaCommand": "./scripts/orca-cli",
   "workflowFile": ".factory/workflows/issue.ts",
   "workflowConfig": ".factory/codex-workflow.config.ts",
   "maxWorkflowRetries": 1,

@@ -1,0 +1,161 @@
+{
+  "creative_ir_version": "0.1",
+  "decompilation": {
+    "model": "manual_annotation",
+    "prompt_version": "manual-review-v0.1",
+    "schema_version": "0.1",
+    "created_at": "2026-08-16T15:30:00+02:00",
+    "pipeline_version": "issue-2-example-v0.1",
+    "annotator_type": "manual"
+  },
+  "source": {
+    "observed": {
+      "platform": "TikTok",
+      "source_url": "https://www.tiktok.com/@tiktok/video/7106594312292453675",
+      "video_id": "7106594312292453675",
+      "creator_handle": "@tiktok",
+      "creator_display_name": "TikTok",
+      "caption": "how many frogs did you find? 🐸 check out tiktok’s #Minecraft community today! @Gorillo",
+      "hashtags": ["Minecraft"],
+      "publication_date": "2022-06-07",
+      "duration_seconds": 24.451,
+      "aspect_ratio": "vertical_9_16",
+      "frame_size": {"width": 576, "height": 1024},
+      "asset_references": [
+        "data/exploration/7106594312292453675/video.mp4",
+        "data/exploration/7106594312292453675/metadata.json"
+      ],
+      "evidence": [
+        {"kind": "metadata", "note": "Public page metadata and the issue 1 collector provide source identity, caption, date, duration and dimensions."},
+        {"kind": "video", "note": "Manual review of the downloaded MP4 provides the shot sequence."}
+      ]
+    }
+  },
+  "observed": {
+    "context": {
+      "visible_subject": "A block-based Minecraft-style world containing a newly built pond, frogs and a player avatar.",
+      "caption_signal": "The caption asks viewers how many frogs they found and points to the Minecraft community.",
+      "evidence": [{"kind": "video", "time_range": {"start_seconds": 0, "end_seconds": 24.451}}, {"kind": "caption"}]
+    },
+    "hook": {
+      "shot_ids": ["shot_01", "shot_02"],
+      "text_ids": ["text_01", "text_02"],
+      "visual_summary": "An overhead pond construction is quickly converted into a timed frog-counting question.",
+      "evidence": [{"kind": "video", "time_range": {"start_seconds": 0, "end_seconds": 7.71}}, {"kind": "on_screen_text", "time_range": {"start_seconds": 0.7, "end_seconds": 7.71}}]
+    },
+    "narrative": {
+      "beats": [
+        {"beat_id": "beat_01", "label": "setup", "shot_ids": ["shot_01"], "time_range": {"start_seconds": 0, "end_seconds": 4.97}, "visible_event": "A player avatar builds and fills a stone-edged pond in a grassy game world."},
+        {"beat_id": "beat_02", "label": "challenge", "shot_ids": ["shot_02"], "time_range": {"start_seconds": 4.97, "end_seconds": 7.71}, "visible_event": "A black card asks how many frogs the viewer can find in ten seconds."},
+        {"beat_id": "beat_03", "label": "search", "shot_ids": ["shot_03"], "time_range": {"start_seconds": 7.71, "end_seconds": 19.75}, "visible_event": "A finished pond and its surrounding landscape are held for frog searching."},
+        {"beat_id": "beat_04", "label": "reveal", "shot_ids": ["shot_04"], "time_range": {"start_seconds": 19.75, "end_seconds": 21.09}, "visible_event": "A black answer card presents frog icons and the number 15."},
+        {"beat_id": "beat_05", "label": "payoff", "shot_ids": ["shot_05"], "time_range": {"start_seconds": 21.09, "end_seconds": 24.451}, "visible_event": "The video returns to the finished pond."}
+      ],
+      "evidence": [{"kind": "timing", "note": "Boundaries are manual annotations supported by visible hard cuts."}]
+    },
+    "shots": [
+      {
+        "shot_id": "shot_01",
+        "time_range": {"start_seconds": 0, "end_seconds": 4.97},
+        "observed": {
+          "visual": {
+            "description": "An elevated game-world view shows a player avatar working around an irregular stone-and-wood pond; the basin is completed and filled with water.",
+            "subjects": ["player avatar", "stone and wood pond", "grassy field"],
+            "environment": "Open grassland with tall grass and scattered vegetation.",
+            "palette": "Natural greens with tan/brown stone and wood under warm daylight."
+          },
+          "camera": {"framing": "wide", "angle": "overhead", "motion": "static", "composition": "The pond occupies the central lower area while the avatar remains visible around it."},
+          "text": {"segments": [{"text_id": "text_01", "time_range": {"start_seconds": 0.7, "end_seconds": 4.97}, "text": "Gorillo built a pond for a family of frogs...", "role": "context", "placement": "upper_third", "style": "Bold white sans-serif text with a dark outline over the game scene."}]},
+          "dialogue": {"presence": "absent", "segments": []},
+          "audio": {"music_or_original_sound": {"present": true, "label": "original sound", "identity_known": false}, "sound_effects": "uncertain", "mix_notes": "Audio is support only; no voiceover was identified."},
+          "editing": {"transition_in": "start", "transition_out": "cut", "pacing": "fast", "notes": "Construction changes quickly before the question card."},
+          "evidence": [{"kind": "video", "time_range": {"start_seconds": 0, "end_seconds": 4.97}}]
+        },
+        "inferred": {"semantic_role": "setup", "attention_mechanisms": ["visual_novelty"], "confidence": "high", "rationale": "The shot establishes the location used by the later challenge."},
+        "generation": {"reconstruction_prompt": "Show a vertical overhead view of a stylized block-based game landscape. A small player avatar builds an irregular shallow pond from stone and wood in bright grass, then water fills the basin. Keep the pond centered and the surrounding field visible.", "continuity_requirements": ["End with a completed, water-filled pond that can match shot_03.", "Keep the viewpoint elevated."]}
+      },
+      {
+        "shot_id": "shot_02",
+        "time_range": {"start_seconds": 4.97, "end_seconds": 7.71},
+        "observed": {
+          "visual": {"description": "A black graphic card shows a pixel-art frog above a centered two-line question.", "subjects": ["pixel-art frog", "question text"], "environment": "Flat black background.", "palette": "Black, saturated green, white and pink text accents."},
+          "camera": {"framing": "graphic_card", "angle": "graphic", "motion": "static", "composition": "Frog in the upper center and question text centered below it."},
+          "text": {"segments": [{"text_id": "text_02", "time_range": {"start_seconds": 4.97, "end_seconds": 7.71}, "text": "how many frogs can you find in 10 seconds?", "role": "challenge", "placement": "center", "style": "Bold white sans-serif text; ‘frogs’ is green and ‘10 seconds?’ is pink."}]},
+          "dialogue": {"presence": "absent", "segments": []},
+          "audio": {"music_or_original_sound": {"present": true, "label": "original sound", "identity_known": false}, "sound_effects": "uncertain"},
+          "editing": {"transition_in": "cut", "transition_out": "cut", "pacing": "moderate"},
+          "evidence": [{"kind": "video", "time_range": {"start_seconds": 4.97, "end_seconds": 7.71}}]
+        },
+        "inferred": {"semantic_role": "challenge", "attention_mechanisms": ["curiosity_gap", "active_participation", "time_pressure"], "confidence": "high", "rationale": "The card explicitly turns viewing into a ten-second counting task."},
+        "generation": {"reconstruction_prompt": "Cut to a pure black vertical card. Place one large pixel-art green frog in the upper center and a bold centered question below it: ‘how many frogs can you find in 10 seconds?’. Use white text with green emphasis on ‘frogs’ and pink emphasis on ‘10 seconds?’.", "continuity_requirements": ["Make the question readable without audio.", "Use a clean pause between setup and search."]}
+      },
+      {
+        "shot_id": "shot_03",
+        "time_range": {"start_seconds": 7.71, "end_seconds": 19.75},
+        "observed": {
+          "visual": {"description": "The finished pond is shown from above in a landscaped block-based world with water, vegetation, flowers, grass and multiple small frogs distributed through the scene.", "subjects": ["finished pond", "frogs", "vegetation and flowers", "grassy landscape"], "environment": "Pond, stone border, water plants, flowers, shrubs, trees and surrounding grass.", "palette": "Lush greens, blue water, gray/tan stone and colorful flowers in warm light."},
+          "camera": {"framing": "wide", "angle": "overhead", "motion": "static", "composition": "The stable wide view exposes the whole search area and keeps small frogs countable."},
+          "text": {"segments": []},
+          "dialogue": {"presence": "absent", "segments": []},
+          "audio": {"music_or_original_sound": {"present": true, "label": "original sound", "identity_known": false}, "sound_effects": "uncertain"},
+          "editing": {"transition_in": "cut", "transition_out": "cut", "pacing": "held_search"},
+          "evidence": [{"kind": "video", "time_range": {"start_seconds": 7.71, "end_seconds": 19.75}}]
+        },
+        "inferred": {"semantic_role": "search", "attention_mechanisms": ["active_participation", "time_pressure"], "confidence": "high", "rationale": "This is the longest uninterrupted visual field after the counting instruction."},
+        "generation": {"reconstruction_prompt": "Hold on a richly decorated block-based pond viewed from above: clear water, stone edging, grass, shrubs, flowers and small green frogs placed at different readable locations. Keep the composition stable and dense enough for a visual counting puzzle.", "continuity_requirements": ["Match the pond geometry and palette from shot_01.", "Keep frogs visible but small enough that counting requires attention.", "Avoid camera movement during the search."]}
+      },
+      {
+        "shot_id": "shot_04",
+        "time_range": {"start_seconds": 19.75, "end_seconds": 21.09},
+        "observed": {
+          "visual": {"description": "A black answer card shows multiple frog icons and a large white number 15.", "subjects": ["frog icons", "answer number"], "environment": "Flat black background.", "palette": "Black, bright green frog icons and white numeral."},
+          "camera": {"framing": "graphic_card", "angle": "graphic", "motion": "static", "composition": "Frog icons occupy the card and the numeral 15 is the dominant readable element."},
+          "text": {"segments": [{"text_id": "text_03", "time_range": {"start_seconds": 20.55, "end_seconds": 21.09}, "text": "15", "role": "answer", "placement": "center", "style": "Large white numeral on a black answer card beside a group of frog icons."}]},
+          "dialogue": {"presence": "absent", "segments": []},
+          "audio": {"music_or_original_sound": {"present": true, "label": "original sound", "identity_known": false}, "sound_effects": "uncertain"},
+          "editing": {"transition_in": "cut", "transition_out": "cut", "pacing": "very_fast"},
+          "evidence": [{"kind": "video", "time_range": {"start_seconds": 19.75, "end_seconds": 21.09}}]
+        },
+        "inferred": {"semantic_role": "reveal", "attention_mechanisms": ["delayed_payoff"], "confidence": "high", "rationale": "The numeral is presented immediately after the search hold as the explicit result."},
+        "generation": {"reconstruction_prompt": "Use a black vertical answer card with green pixel-art frog icons and a large centered white ‘15’. Make the number the fastest element to read.", "continuity_requirements": ["Reveal exactly 15.", "Keep the answer card shorter than the search scene."]}
+      },
+      {
+        "shot_id": "shot_05",
+        "time_range": {"start_seconds": 21.09, "end_seconds": 24.451},
+        "observed": {
+          "visual": {"description": "The video returns to the finished pond and surrounding landscape from the same elevated game-world viewpoint.", "subjects": ["finished pond", "frogs", "landscape"], "environment": "The same pond and garden environment as shot_03.", "palette": "Lush greens and blue water under warm daylight."},
+          "camera": {"framing": "wide", "angle": "overhead", "motion": "static", "composition": "The closing view matches the elevated composition of the search scene."},
+          "text": {"segments": []},
+          "dialogue": {"presence": "absent", "segments": []},
+          "audio": {"music_or_original_sound": {"present": true, "label": "original sound", "identity_known": false}, "sound_effects": "uncertain"},
+          "editing": {"transition_in": "cut", "transition_out": "end", "pacing": "slow"},
+          "evidence": [{"kind": "video", "time_range": {"start_seconds": 21.09, "end_seconds": 24.451}}]
+        },
+        "inferred": {"semantic_role": "payoff", "attention_mechanisms": ["delayed_payoff"], "confidence": "medium", "rationale": "The return to the pond visually settles the answer, while its exact editorial purpose is interpretive."},
+        "generation": {"reconstruction_prompt": "Return briefly to the same finished pond composition from shot_03. Preserve the water, stone edging, vegetation and frog placement so the answer resolves back into the original scene.", "continuity_requirements": ["Match the search-scene viewpoint and environment.", "Do not introduce a new narrative beat after the reveal."]}
+      }
+    ],
+    "marketing": {
+      "call_to_action_text_ids": ["text_02"],
+      "engagement_devices": ["explicit_question", "countdown", "hidden_object", "delayed_reveal"],
+      "evidence": [{"kind": "on_screen_text", "time_range": {"start_seconds": 4.97, "end_seconds": 7.71}}, {"kind": "caption"}]
+    },
+    "commercial": {
+      "product_presence": "absent",
+      "evidence": [{"kind": "video", "time_range": {"start_seconds": 0, "end_seconds": 24.451}, "note": "No product presentation or purchase offer was identified in this non-ad example."}]
+    }
+  },
+  "inferred": {
+    "overall_concept": {"premise": "A Minecraft player builds a frog pond, invites viewers to search a later pond scene for ten seconds, and reveals that the hidden-frog count is 15.", "format": "challenge", "viewer_action": "Search the pond scene, count the frogs and compare the count with 15.", "confidence": "high", "rationale": "The video has an explicit question card, a held search scene and a numerical reveal."},
+    "target_audience": {"primary_audience": "Minecraft players and viewers who enjoy quick visual puzzles or hidden-object challenges.", "interest_clusters": ["Minecraft gameplay and building", "cute game creatures", "spot-the-object puzzles", "participatory short-form challenges"], "confidence": "medium", "rationale": "The game reference is explicit; audience interests are inferred from the challenge structure and subject matter."},
+    "hook": {"hook_types": ["curiosity_gap", "challenge", "countdown", "visual_novelty"], "promise": "The viewer is promised a quick, countable visual puzzle with a later answer.", "confidence": "high", "rationale": "The opening establishes an unusual frog pond and immediately turns it into a timed search task."},
+    "narrative": {"story_summary": "Construction creates context, the question creates participation, the pond creates search time, and 15 supplies the payoff.", "arc": "setup_challenge_search_reveal", "payoff": "The viewer gets a concrete count and a final visual return to the pond.", "confidence": "high", "rationale": "Each narrative function is marked by a distinct visual state."},
+    "marketing": {"mechanisms": ["curiosity_gap", "challenge", "time_pressure", "participation", "payoff_reveal"], "confidence": "high", "rationale": "The question, search hold and answer card directly support these mechanisms."},
+    "commercial": {"status": "not_applicable", "proof_type": "not_applicable", "trust_signals": [], "objections_addressed": [], "cta_type": "not_applicable", "confidence": "high", "rationale": "This is an engagement challenge rather than a product or affiliate video."}
+  },
+  "generation": {
+    "global_reconstruction_brief": "Reconstruct a 24.451-second vertical short-form visual puzzle in a polished block-based game world. Begin with an elevated view of a player building and filling an irregular stone-edged frog pond in bright grass. Cut to a black card with a pixel frog and the exact question ‘how many frogs can you find in 10 seconds?’. Cut back to the completed pond and hold a stable overhead view for the search. Cut to a black answer card with frog icons and a large ‘15’, then briefly return to the same pond composition. The story must work without spoken narration.",
+    "shot_order": ["shot_01", "shot_02", "shot_03", "shot_04", "shot_05"],
+    "global_constraints": ["Output a vertical 9:16 composition.", "Keep the pond environment continuous between setup, search and closing shots.", "Preserve the observed text, hard-cut structure and answer 15.", "Use model-agnostic descriptions; do not prescribe a rendering engine or compositor.", "Keep generation instructions separate from observed and inferred fields."]
+  }
+}
