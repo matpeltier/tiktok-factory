@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# The bundled orca-ide launcher in this Linux environment passes --no-sandbox
+# to the AppImage before reaching the machine-readable CLI. Dark Kitchen AI
+# needs the CLI entrypoint directly, so extract it once into a user cache.
+appimage_path="${ORCA_APPIMAGE_PATH:-/opt/orca/orca-linux.AppImage}"
+cache_root="${ORCA_CLI_CACHE_DIR:-${XDG_CACHE_HOME:-/tmp}/dark-kitchen-ai/orca-cli}"
+cli_path="$cache_root/squashfs-root/resources/app.asar.unpacked/out/cli/index.js"
+
+if [[ ! -f "$cli_path" ]]; then
+  [[ -f "$appimage_path" ]] || {
+    echo "Orca AppImage not found at $appimage_path; set ORCA_APPIMAGE_PATH." >&2
+    exit 1
+  }
+
+  mkdir -p "$(dirname "$cache_root")"
+  extraction_dir="$(mktemp -d "${cache_root}.extract.XXXXXX")"
+  cleanup() {
+    rm -rf "$extraction_dir"
+  }
+  trap cleanup EXIT
+  (
+    cd "$extraction_dir"
+    "$appimage_path" --appimage-extract >/dev/null
+  )
+  [[ -f "$extraction_dir/squashfs-root/resources/app.asar.unpacked/out/cli/index.js" ]] || {
+    echo "Orca AppImage extraction did not contain its CLI entrypoint." >&2
+    exit 1
+  }
+  mkdir -p "$cache_root"
+  mv "$extraction_dir/squashfs-root" "$cache_root/squashfs-root"
+fi
+
+exec /usr/bin/node "$cli_path" "$@"

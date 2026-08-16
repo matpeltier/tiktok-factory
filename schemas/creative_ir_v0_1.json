@@ -1,0 +1,1234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/matpeltier/tiktok-factory/blob/main/schemas/creative_ir_v0_1.json",
+  "title": "CreativeIR Full v0.1",
+  "description": "A rich, model-agnostic and auditable representation of one short-form video. Use canonical_ir_v0_1.json for compact modeling inputs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "creative_ir_version",
+    "decompilation",
+    "source",
+    "observed",
+    "inferred",
+    "generation"
+  ],
+  "properties": {
+    "creative_ir_version": {
+      "const": "0.1"
+    },
+    "decompilation": {
+      "$ref": "#/$defs/decompilation"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "observed": {
+      "$ref": "#/$defs/observed"
+    },
+    "inferred": {
+      "$ref": "#/$defs/inferred"
+    },
+    "generation": {
+      "$ref": "#/$defs/generation"
+    }
+  },
+  "$defs": {
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    "time_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_seconds",
+        "end_seconds"
+      ],
+      "properties": {
+        "start_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "end_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "video",
+            "audio",
+            "on_screen_text",
+            "caption",
+            "metadata",
+            "timing",
+            "manual_annotation"
+          ]
+        },
+        "time_range": {
+          "$ref": "#/$defs/time_range"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence_list": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "decompilation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "prompt_version",
+        "schema_version",
+        "created_at",
+        "pipeline_version",
+        "annotator_type"
+      ],
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prompt_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_version": {
+          "const": "0.1"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "pipeline_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "annotator_type": {
+          "type": "string",
+          "enum": [
+            "automated",
+            "manual",
+            "hybrid"
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observed"
+      ],
+      "properties": {
+        "observed": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "platform",
+            "source_url",
+            "video_id",
+            "duration_seconds",
+            "aspect_ratio",
+            "asset_references",
+            "evidence"
+          ],
+          "properties": {
+            "platform": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "video_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "creator_handle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "creator_display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "caption": {
+              "type": "string"
+            },
+            "hashtags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "publication_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "duration_seconds": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "aspect_ratio": {
+              "type": "string",
+              "enum": [
+                "vertical_9_16",
+                "vertical_other",
+                "square",
+                "horizontal_16_9",
+                "horizontal_other",
+                "unknown"
+              ]
+            },
+            "frame_size": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "width",
+                "height"
+              ],
+              "properties": {
+                "width": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0
+                },
+                "height": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0
+                }
+              }
+            },
+            "asset_references": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence_list"
+            }
+          }
+        }
+      }
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context",
+        "hook",
+        "narrative",
+        "shots",
+        "marketing",
+        "commercial"
+      ],
+      "properties": {
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "visible_subject",
+            "caption_signal",
+            "evidence"
+          ],
+          "properties": {
+            "visible_subject": {
+              "type": "string",
+              "minLength": 1
+            },
+            "caption_signal": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence_list"
+            }
+          }
+        },
+        "hook": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "shot_ids",
+            "text_ids",
+            "visual_summary",
+            "evidence"
+          ],
+          "properties": {
+            "shot_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "pattern": "^shot_[0-9]+$"
+              },
+              "uniqueItems": true
+            },
+            "text_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^text_[0-9]+$"
+              },
+              "uniqueItems": true
+            },
+            "visual_summary": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence_list"
+            }
+          }
+        },
+        "narrative": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "beats",
+            "evidence"
+          ],
+          "properties": {
+            "beats": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "beat_id",
+                  "label",
+                  "shot_ids",
+                  "time_range",
+                  "visible_event"
+                ],
+                "properties": {
+                  "beat_id": {
+                    "type": "string",
+                    "pattern": "^beat_[0-9]+$"
+                  },
+                  "label": {
+                    "type": "string",
+                    "enum": [
+                      "setup",
+                      "hook",
+                      "challenge",
+                      "search",
+                      "reveal",
+                      "payoff",
+                      "product_demo",
+                      "product_proof",
+                      "cta",
+                      "other"
+                    ]
+                  },
+                  "shot_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string",
+                      "pattern": "^shot_[0-9]+$"
+                    },
+                    "uniqueItems": true
+                  },
+                  "time_range": {
+                    "$ref": "#/$defs/time_range"
+                  },
+                  "visible_event": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence_list"
+            }
+          }
+        },
+        "shots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/shot"
+          }
+        },
+        "marketing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "call_to_action_text_ids",
+            "engagement_devices",
+            "evidence"
+          ],
+          "properties": {
+            "call_to_action_text_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^text_[0-9]+$"
+              },
+              "uniqueItems": true
+            },
+            "engagement_devices": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "explicit_question",
+                  "countdown",
+                  "hidden_object",
+                  "delayed_reveal",
+                  "before_after",
+                  "social_proof",
+                  "personal_experience",
+                  "other"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence_list"
+            }
+          }
+        },
+        "commercial": {
+          "$ref": "#/$defs/commercial_observed"
+        }
+      }
+    },
+    "shot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shot_id",
+        "time_range",
+        "observed",
+        "inferred",
+        "generation"
+      ],
+      "properties": {
+        "shot_id": {
+          "type": "string",
+          "pattern": "^shot_[0-9]+$"
+        },
+        "time_range": {
+          "$ref": "#/$defs/time_range"
+        },
+        "observed": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "visual",
+            "camera",
+            "text",
+            "dialogue",
+            "audio",
+            "editing",
+            "evidence"
+          ],
+          "properties": {
+            "visual": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "description",
+                "subjects",
+                "environment",
+                "palette"
+              ],
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "subjects": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "environment": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "palette": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "camera": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "framing",
+                "angle",
+                "motion",
+                "composition"
+              ],
+              "properties": {
+                "framing": {
+                  "type": "string",
+                  "enum": [
+                    "extreme_wide",
+                    "wide",
+                    "medium",
+                    "close_up",
+                    "extreme_close_up",
+                    "graphic_card",
+                    "unknown"
+                  ]
+                },
+                "angle": {
+                  "type": "string",
+                  "enum": [
+                    "overhead",
+                    "high_angle",
+                    "eye_level",
+                    "low_angle",
+                    "graphic",
+                    "unknown"
+                  ]
+                },
+                "motion": {
+                  "type": "string",
+                  "enum": [
+                    "static",
+                    "pan",
+                    "tilt",
+                    "zoom",
+                    "dolly",
+                    "tracking",
+                    "handheld",
+                    "graphic_animation",
+                    "unknown"
+                  ]
+                },
+                "composition": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "text": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "segments"
+              ],
+              "properties": {
+                "segments": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/text_segment"
+                  }
+                }
+              }
+            },
+            "dialogue": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "presence",
+                "segments"
+              ],
+              "properties": {
+                "presence": {
+                  "type": "string",
+                  "enum": [
+                    "present",
+                    "absent",
+                    "uncertain"
+                  ]
+                },
+                "segments": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/dialogue_segment"
+                  }
+                }
+              }
+            },
+            "audio": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "music_or_original_sound",
+                "sound_effects"
+              ],
+              "properties": {
+                "music_or_original_sound": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "present",
+                    "label",
+                    "identity_known"
+                  ],
+                  "properties": {
+                    "present": {
+                      "type": "boolean"
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "identity_known": {
+                      "type": "boolean"
+                    },
+                    "identity": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "sound_effects": {
+                  "type": "string",
+                  "enum": [
+                    "present",
+                    "absent",
+                    "uncertain"
+                  ]
+                },
+                "mix_notes": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "editing": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "transition_in",
+                "transition_out",
+                "pacing"
+              ],
+              "properties": {
+                "transition_in": {
+                  "type": "string",
+                  "enum": [
+                    "start",
+                    "cut",
+                    "fade",
+                    "dissolve",
+                    "wipe",
+                    "match_cut",
+                    "unknown"
+                  ]
+                },
+                "transition_out": {
+                  "type": "string",
+                  "enum": [
+                    "end",
+                    "cut",
+                    "fade",
+                    "dissolve",
+                    "wipe",
+                    "match_cut",
+                    "unknown"
+                  ]
+                },
+                "pacing": {
+                  "type": "string",
+                  "enum": [
+                    "very_fast",
+                    "fast",
+                    "moderate",
+                    "slow",
+                    "held_search",
+                    "unknown"
+                  ]
+                },
+                "notes": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence_list"
+            }
+          }
+        },
+        "inferred": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "semantic_role",
+            "attention_mechanisms",
+            "confidence",
+            "rationale"
+          ],
+          "properties": {
+            "semantic_role": {
+              "type": "string",
+              "enum": [
+                "setup",
+                "hook",
+                "challenge",
+                "search",
+                "reveal",
+                "payoff",
+                "product_demo",
+                "product_proof",
+                "cta",
+                "other"
+              ]
+            },
+            "attention_mechanisms": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "curiosity_gap",
+                  "active_participation",
+                  "time_pressure",
+                  "delayed_payoff",
+                  "visual_novelty",
+                  "social_proof",
+                  "personal_experience",
+                  "before_after",
+                  "other"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "confidence": {
+              "$ref": "#/$defs/confidence"
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "generation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reconstruction_prompt",
+            "continuity_requirements"
+          ],
+          "properties": {
+            "reconstruction_prompt": {
+              "type": "string",
+              "minLength": 1
+            },
+            "continuity_requirements": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "text_segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text_id",
+        "time_range",
+        "text",
+        "role",
+        "placement",
+        "style"
+      ],
+      "properties": {
+        "text_id": {
+          "type": "string",
+          "pattern": "^text_[0-9]+$"
+        },
+        "time_range": {
+          "$ref": "#/$defs/time_range"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "context",
+            "instruction",
+            "challenge",
+            "countdown",
+            "answer",
+            "branding",
+            "product_claim",
+            "cta",
+            "other"
+          ]
+        },
+        "placement": {
+          "type": "string",
+          "enum": [
+            "top",
+            "upper_third",
+            "center",
+            "lower_third",
+            "bottom",
+            "full_frame",
+            "unknown"
+          ]
+        },
+        "style": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "dialogue_segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dialogue_id",
+        "time_range",
+        "text",
+        "transcription_status"
+      ],
+      "properties": {
+        "dialogue_id": {
+          "type": "string",
+          "pattern": "^dialogue_[0-9]+$"
+        },
+        "time_range": {
+          "$ref": "#/$defs/time_range"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "speaker": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transcription_status": {
+          "type": "string",
+          "enum": [
+            "exact",
+            "approximate",
+            "machine_transcribed",
+            "uncertain"
+          ]
+        }
+      }
+    },
+    "commercial_observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_presence",
+        "evidence"
+      ],
+      "properties": {
+        "product_presence": {
+          "type": "string",
+          "enum": [
+            "present",
+            "absent",
+            "uncertain"
+          ]
+        },
+        "first_product_appearance_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "product_mentions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "claim_text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "offer_text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cta_text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence_list"
+        }
+      }
+    },
+    "commercial_inferred": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "proof_type",
+        "trust_signals",
+        "objections_addressed",
+        "cta_type",
+        "confidence",
+        "rationale"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_applicable",
+            "affiliate",
+            "direct_sale",
+            "brand_awareness",
+            "uncertain"
+          ]
+        },
+        "problem": {
+          "type": "string",
+          "minLength": 1
+        },
+        "desire": {
+          "type": "string",
+          "minLength": 1
+        },
+        "promise": {
+          "type": "string",
+          "minLength": 1
+        },
+        "offer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proof_type": {
+          "type": "string",
+          "enum": [
+            "not_applicable",
+            "demonstration",
+            "before_after",
+            "testimonial",
+            "comparison",
+            "social_proof",
+            "expertise",
+            "uncertain"
+          ]
+        },
+        "trust_signals": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "personal_experience",
+              "before_after",
+              "testimonial",
+              "demonstration",
+              "social_proof",
+              "expertise",
+              "guarantee",
+              "other"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "objections_addressed": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "cta_type": {
+          "type": "string",
+          "enum": [
+            "not_applicable",
+            "shop_now",
+            "learn_more",
+            "download",
+            "sign_up",
+            "comment",
+            "share",
+            "follow",
+            "other",
+            "uncertain"
+          ]
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "inferred": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall_concept",
+        "target_audience",
+        "hook",
+        "narrative",
+        "marketing",
+        "commercial"
+      ],
+      "properties": {
+        "overall_concept": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "premise",
+            "format",
+            "viewer_action",
+            "confidence",
+            "rationale"
+          ],
+          "properties": {
+            "premise": {
+              "type": "string",
+              "minLength": 1
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "challenge",
+                "tutorial",
+                "story",
+                "demonstration",
+                "list",
+                "reaction",
+                "product_ad",
+                "other"
+              ]
+            },
+            "viewer_action": {
+              "type": "string",
+              "minLength": 1
+            },
+            "confidence": {
+              "$ref": "#/$defs/confidence"
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "target_audience": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "primary_audience",
+            "interest_clusters",
+            "confidence",
+            "rationale"
+          ],
+          "properties": {
+            "primary_audience": {
+              "type": "string",
+              "minLength": 1
+            },
+            "interest_clusters": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "confidence": {
+              "$ref": "#/$defs/confidence"
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "hook": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hook_types",
+            "promise",
+            "confidence",
+            "rationale"
+          ],
+          "properties": {
+            "hook_types": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "curiosity_gap",
+                  "challenge",
+                  "countdown",
+                  "narrative_promise",
+                  "visual_novelty",
+                  "product_promise",
+                  "other"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "promise": {
+              "type": "string",
+              "minLength": 1
+            },
+            "confidence": {
+              "$ref": "#/$defs/confidence"
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "narrative": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "story_summary",
+            "arc",
+            "payoff",
+            "confidence",
+            "rationale"
+          ],
+          "properties": {
+            "story_summary": {
+              "type": "string",
+              "minLength": 1
+            },
+            "arc": {
+              "type": "string",
+              "enum": [
+                "setup_challenge_search_reveal",
+                "setup_payoff",
+                "problem_solution",
+                "problem_proof_cta",
+                "other"
+              ]
+            },
+            "payoff": {
+              "type": "string",
+              "minLength": 1
+            },
+            "confidence": {
+              "$ref": "#/$defs/confidence"
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "marketing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mechanisms",
+            "confidence",
+            "rationale"
+          ],
+          "properties": {
+            "mechanisms": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "curiosity_gap",
+                  "challenge",
+                  "time_pressure",
+                  "participation",
+                  "payoff_reveal",
+                  "visual_novelty",
+                  "problem_agitation",
+                  "proof",
+                  "social_proof",
+                  "other"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "confidence": {
+              "$ref": "#/$defs/confidence"
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "commercial": {
+          "$ref": "#/$defs/commercial_inferred"
+        }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "global_reconstruction_brief",
+        "shot_order",
+        "global_constraints"
+      ],
+      "properties": {
+        "global_reconstruction_brief": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shot_order": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^shot_[0-9]+$"
+          },
+          "uniqueItems": true
+        },
+        "global_constraints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

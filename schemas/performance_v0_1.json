@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/matpeltier/tiktok-factory/blob/main/schemas/performance_v0_1.json",
+  "title": "Short-form video performance v0.1",
+  "description": "Performance outcomes kept separate from CreativeIR features and labels.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "performance_version",
+    "video_id",
+    "observed_at",
+    "metrics"
+  ],
+  "properties": {
+    "performance_version": {
+      "const": "0.1"
+    },
+    "video_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "views",
+        "likes",
+        "shares",
+        "comments",
+        "creator_followers",
+        "creator_baseline_views",
+        "relative_views"
+      ],
+      "properties": {
+        "views": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "likes": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "shares": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "comments": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "creator_followers": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "creator_baseline_views": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "relative_views": {
+          "type": ["number", "null"],
+          "minimum": 0
+        }
+      }
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
