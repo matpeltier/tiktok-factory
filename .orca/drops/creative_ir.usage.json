@@ -1,0 +1,11 @@
+{
+  "model": "gemini-3.6-flash",
+  "recorded_at": "2026-08-17T09:27:58.470545+00:00",
+  "video_id": "7106594312292453675",
+  "usage_metadata": {
+    "candidates_token_count": 5068,
+    "thoughts_token_count": 1015,
+    "total_token_count": 12595
+  },
+  "cost": "Gemini API pricing is model/account dependent; no cost was returned by the SDK. Consult the model pricing page using the recorded model and token counts."
+}

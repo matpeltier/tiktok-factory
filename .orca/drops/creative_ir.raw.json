@@ -1,0 +1,645 @@
+{
+  "creative_ir_version": "0.1",
+  "decompilation": {
+    "model": "gemini-3.6-flash",
+    "prompt_version": "gemini-single-pass-creative-ir-v0.1",
+    "schema_version": "0.1",
+    "created_at": "2026-03-30T00:00:00Z",
+    "pipeline_version": "1.0",
+    "annotator_type": "automated"
+  },
+  "source": {
+    "observed": {
+      "platform": "TikTok",
+      "source_url": "https://www.tiktok.com/@tiktok/video/7106594312292453675",
+      "video_id": "7106594312292453675",
+      "creator_handle": "tiktok",
+      "creator_display_name": "TikTok",
+      "caption": "how many frogs did you find? 🐸 check out tiktok’s #Minecraft community today! @Gorillo",
+      "hashtags": [
+        "Minecraft"
+      ],
+      "publication_date": "2022-06-07",
+      "duration_seconds": 24,
+      "aspect_ratio": "vertical_9_16",
+      "frame_size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "asset_references": [
+        "video_main"
+      ],
+      "evidence": [
+        {
+          "kind": "metadata",
+          "note": "Source collector metadata"
+        }
+      ]
+    }
+  },
+  "observed": {
+    "context": {
+      "visible_subject": "Minecraft pond building and frog-counting challenge.",
+      "caption_signal": "Encourages users to count frogs and engage with TikTok's Minecraft community.",
+      "evidence": [
+        {
+          "kind": "caption",
+          "note": "Caption text and hashtags"
+        }
+      ]
+    },
+    "hook": {
+      "shot_ids": [
+        "shot_0",
+        "shot_1"
+      ],
+      "text_ids": [
+        "text_0",
+        "text_1"
+      ],
+      "visual_summary": "Timelapse of pond construction followed by a 10-second frog counting prompt.",
+      "evidence": [
+        {
+          "kind": "video",
+          "time_range": {
+            "start_seconds": 0,
+            "end_seconds": 7
+          },
+          "note": "Opening setup and question visual"
+        }
+      ]
+    },
+    "narrative": {
+      "beats": [
+        {
+          "beat_id": "beat_0",
+          "label": "setup",
+          "shot_ids": [
+            "shot_0"
+          ],
+          "time_range": {
+            "start_seconds": 0,
+            "end_seconds": 5
+          },
+          "visible_event": "Gorillo constructs a pond for frogs in Minecraft."
+        },
+        {
+          "beat_id": "beat_1",
+          "label": "challenge",
+          "shot_ids": [
+            "shot_1"
+          ],
+          "time_range": {
+            "start_seconds": 5,
+            "end_seconds": 7
+          },
+          "visible_event": "Graphic challenge asking how many frogs can be found in 10 seconds."
+        },
+        {
+          "beat_id": "beat_2",
+          "label": "search",
+          "shot_ids": [
+            "shot_2"
+          ],
+          "time_range": {
+            "start_seconds": 7,
+            "end_seconds": 19.5
+          },
+          "visible_event": "10-second timer while showing the frog pond scene."
+        },
+        {
+          "beat_id": "beat_3",
+          "label": "reveal",
+          "shot_ids": [
+            "shot_3"
+          ],
+          "time_range": {
+            "start_seconds": 19.5,
+            "end_seconds": 22
+          },
+          "visible_event": "Answer graphic revealing the total count of 15 frogs."
+        },
+        {
+          "beat_id": "beat_4",
+          "label": "payoff",
+          "shot_ids": [
+            "shot_4"
+          ],
+          "time_range": {
+            "start_seconds": 22,
+            "end_seconds": 24
+          },
+          "visible_event": "Final view of the completed frog pond."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "video",
+          "time_range": {
+            "start_seconds": 0,
+            "end_seconds": 24
+          },
+          "note": "Full narrative beat breakdown"
+        }
+      ]
+    },
+    "shots": [
+      {
+        "shot_id": "shot_0",
+        "time_range": {
+          "start_seconds": 0,
+          "end_seconds": 5
+        },
+        "observed": {
+          "visual": {
+            "description": "Isometric Minecraft view showing rapid pond digging and decoration.",
+            "subjects": [
+              "Minecraft player character",
+              "Pond terrain"
+            ],
+            "environment": "Grassy Minecraft biome",
+            "palette": "Green, brown, blue"
+          },
+          "camera": {
+            "framing": "wide",
+            "angle": "high_angle",
+            "motion": "static",
+            "composition": "Centered pond construction"
+          },
+          "text": {
+            "segments": [
+              {
+                "text_id": "text_0",
+                "time_range": {
+                  "start_seconds": 1,
+                  "end_seconds": 5
+                },
+                "text": "Gorillo built a pond for a family of frogs...",
+                "role": "context",
+                "placement": "upper_third",
+                "style": "White bold text on dark background"
+              }
+            ]
+          },
+          "dialogue": {
+            "presence": "absent",
+            "segments": []
+          },
+          "audio": {
+            "music_or_original_sound": {
+              "present": true,
+              "label": "Background music with block placement sound effects",
+              "identity_known": false
+            },
+            "sound_effects": "present",
+            "mix_notes": "Upbeat music mixed with block sound effects."
+          },
+          "editing": {
+            "transition_in": "start",
+            "transition_out": "cut",
+            "pacing": "fast",
+            "notes": "Time-lapse build sequence."
+          },
+          "evidence": [
+            {
+              "kind": "video",
+              "time_range": {
+                "start_seconds": 0,
+                "end_seconds": 5
+              },
+              "note": "Pond construction shot"
+            }
+          ]
+        },
+        "inferred": {
+          "semantic_role": "setup",
+          "attention_mechanisms": [
+            "visual_novelty"
+          ],
+          "confidence": "high",
+          "rationale": "Establishes the environment and creator context."
+        },
+        "generation": {
+          "reconstruction_prompt": "Isometric Minecraft view of player digging and decorating a pond, sunny grassy terrain.",
+          "continuity_requirements": [
+            "Keep high angle isometric perspective",
+            "Maintain Minecraft block aesthetic"
+          ]
+        }
+      },
+      {
+        "shot_id": "shot_1",
+        "time_range": {
+          "start_seconds": 5,
+          "end_seconds": 7
+        },
+        "observed": {
+          "visual": {
+            "description": "Graphic screen with Minecraft frog image and prompt text.",
+            "subjects": [
+              "Green Minecraft frog"
+            ],
+            "environment": "Black graphic backdrop",
+            "palette": "Black, green, white, red"
+          },
+          "camera": {
+            "framing": "graphic_card",
+            "angle": "graphic",
+            "motion": "graphic_animation",
+            "composition": "Centered frog image and prompt"
+          },
+          "text": {
+            "segments": [
+              {
+                "text_id": "text_1",
+                "time_range": {
+                  "start_seconds": 5,
+                  "end_seconds": 7
+                },
+                "text": "how many frogs can you find in 10 seconds?",
+                "role": "challenge",
+                "placement": "lower_third",
+                "style": "White text with green 'frogs' and red '10 seconds'"
+              }
+            ]
+          },
+          "dialogue": {
+            "presence": "absent",
+            "segments": []
+          },
+          "audio": {
+            "music_or_original_sound": {
+              "present": true,
+              "label": "Transition sound cue",
+              "identity_known": false
+            },
+            "sound_effects": "present",
+            "mix_notes": "Audio cue introducing the challenge."
+          },
+          "editing": {
+            "transition_in": "cut",
+            "transition_out": "cut",
+            "pacing": "moderate",
+            "notes": "Title card challenge prompt."
+          },
+          "evidence": [
+            {
+              "kind": "video",
+              "time_range": {
+                "start_seconds": 5,
+                "end_seconds": 7
+              },
+              "note": "Challenge title screen"
+            }
+          ]
+        },
+        "inferred": {
+          "semantic_role": "challenge",
+          "attention_mechanisms": [
+            "curiosity_gap",
+            "active_participation",
+            "time_pressure"
+          ],
+          "confidence": "high",
+          "rationale": "Directly prompts viewer interaction."
+        },
+        "generation": {
+          "reconstruction_prompt": "Graphic screen with a Minecraft green frog on a black background and challenge text.",
+          "continuity_requirements": [
+            "Black screen contrast",
+            "Exact text wording"
+          ]
+        }
+      },
+      {
+        "shot_id": "shot_2",
+        "time_range": {
+          "start_seconds": 7,
+          "end_seconds": 19.5
+        },
+        "observed": {
+          "visual": {
+            "description": "Static isometric scene of completed frog pond with frogs scattered throughout.",
+            "subjects": [
+              "Minecraft frogs",
+              "Pond landscape"
+            ],
+            "environment": "Minecraft pond area",
+            "palette": "Green, blue, pink, brown"
+          },
+          "camera": {
+            "framing": "wide",
+            "angle": "high_angle",
+            "motion": "static",
+            "composition": "Centered pond surrounded by foliage"
+          },
+          "text": {
+            "segments": []
+          },
+          "dialogue": {
+            "presence": "absent",
+            "segments": []
+          },
+          "audio": {
+            "music_or_original_sound": {
+              "present": true,
+              "label": "Chill background track with frog croak effects",
+              "identity_known": false
+            },
+            "sound_effects": "present",
+            "mix_notes": "Music plays while frog croaks signal searching time."
+          },
+          "editing": {
+            "transition_in": "cut",
+            "transition_out": "cut",
+            "pacing": "held_search",
+            "notes": "10-second observation window."
+          },
+          "evidence": [
+            {
+              "kind": "video",
+              "time_range": {
+                "start_seconds": 7,
+                "end_seconds": 19.5
+              },
+              "note": "Search scene duration"
+            }
+          ]
+        },
+        "inferred": {
+          "semantic_role": "search",
+          "attention_mechanisms": [
+            "active_participation",
+            "time_pressure"
+          ],
+          "confidence": "high",
+          "rationale": "Main active search portion for viewer."
+        },
+        "generation": {
+          "reconstruction_prompt": "Static high angle view of a decorated Minecraft pond with multiple hidden green frogs.",
+          "continuity_requirements": [
+            "Match pond scenery from shot 0",
+            "Frogs positioned across pond and vegetation"
+          ]
+        }
+      },
+      {
+        "shot_id": "shot_3",
+        "time_range": {
+          "start_seconds": 19.5,
+          "end_seconds": 22
+        },
+        "observed": {
+          "visual": {
+            "description": "Black screen with large white number '15' surrounded by small animated green frogs.",
+            "subjects": [
+              "Number 15",
+              "Minecraft frogs"
+            ],
+            "environment": "Black graphic backdrop",
+            "palette": "Black, white, green"
+          },
+          "camera": {
+            "framing": "graphic_card",
+            "angle": "graphic",
+            "motion": "graphic_animation",
+            "composition": "Large centered number with scattered frogs"
+          },
+          "text": {
+            "segments": [
+              {
+                "text_id": "text_2",
+                "time_range": {
+                  "start_seconds": 20,
+                  "end_seconds": 22
+                },
+                "text": "15",
+                "role": "answer",
+                "placement": "center",
+                "style": "Large bold white font"
+              }
+            ]
+          },
+          "dialogue": {
+            "presence": "absent",
+            "segments": []
+          },
+          "audio": {
+            "music_or_original_sound": {
+              "present": true,
+              "label": "Triumphant sound reveal effect",
+              "identity_known": false
+            },
+            "sound_effects": "present",
+            "mix_notes": "Audio chime marking reveal."
+          },
+          "editing": {
+            "transition_in": "cut",
+            "transition_out": "cut",
+            "pacing": "fast",
+            "notes": "Reveal graphic screen."
+          },
+          "evidence": [
+            {
+              "kind": "video",
+              "time_range": {
+                "start_seconds": 19.5,
+                "end_seconds": 22
+              },
+              "note": "Answer reveal screen"
+            }
+          ]
+        },
+        "inferred": {
+          "semantic_role": "reveal",
+          "attention_mechanisms": [
+            "delayed_payoff"
+          ],
+          "confidence": "high",
+          "rationale": "Answers the challenge question."
+        },
+        "generation": {
+          "reconstruction_prompt": "Graphic reveal screen showing the number 15 in bold white text surrounded by tiny Minecraft frogs on black background.",
+          "continuity_requirements": [
+            "Clear display of number 15"
+          ]
+        }
+      },
+      {
+        "shot_id": "shot_4",
+        "time_range": {
+          "start_seconds": 22,
+          "end_seconds": 24
+        },
+        "observed": {
+          "visual": {
+            "description": "Return to the pond view, completing the visual resolution.",
+            "subjects": [
+              "Minecraft pond and frogs"
+            ],
+            "environment": "Minecraft pond",
+            "palette": "Green, blue, pink"
+          },
+          "camera": {
+            "framing": "wide",
+            "angle": "high_angle",
+            "motion": "static",
+            "composition": "Full view of pond"
+          },
+          "text": {
+            "segments": []
+          },
+          "dialogue": {
+            "presence": "absent",
+            "segments": []
+          },
+          "audio": {
+            "music_or_original_sound": {
+              "present": true,
+              "label": "Background music fade out",
+              "identity_known": false
+            },
+            "sound_effects": "absent",
+            "mix_notes": "Music resolves."
+          },
+          "editing": {
+            "transition_in": "cut",
+            "transition_out": "end",
+            "pacing": "moderate",
+            "notes": "Final closing shot."
+          },
+          "evidence": [
+            {
+              "kind": "video",
+              "time_range": {
+                "start_seconds": 22,
+                "end_seconds": 24
+              },
+              "note": "Closing shot"
+            }
+          ]
+        },
+        "inferred": {
+          "semantic_role": "payoff",
+          "attention_mechanisms": [
+            "other"
+          ],
+          "confidence": "high",
+          "rationale": "Final shot showing the complete scene."
+        },
+        "generation": {
+          "reconstruction_prompt": "High angle view of the Minecraft frog pond environment.",
+          "continuity_requirements": [
+            "Identical scene setup as shot 2"
+          ]
+        }
+      }
+    ],
+    "marketing": {
+      "call_to_action_text_ids": [],
+      "engagement_devices": [
+        "explicit_question",
+        "countdown",
+        "hidden_object",
+        "delayed_reveal"
+      ],
+      "evidence": [
+        {
+          "kind": "video",
+          "time_range": {
+            "start_seconds": 5,
+            "end_seconds": 22
+          },
+          "note": "Interactive challenge framework"
+        }
+      ]
+    },
+    "commercial": {
+      "product_presence": "absent",
+      "evidence": [
+        {
+          "kind": "video",
+          "time_range": {
+            "start_seconds": 0,
+            "end_seconds": 24
+          },
+          "note": "No commercial products present"
+        }
+      ]
+    }
+  },
+  "inferred": {
+    "overall_concept": {
+      "premise": "Interactive Minecraft game asking viewers to count hidden frogs in a custom pond within 10 seconds.",
+      "format": "challenge",
+      "viewer_action": "Count frogs on screen during the timer.",
+      "confidence": "high",
+      "rationale": "Direct question and timed structure drive immediate participation."
+    },
+    "target_audience": {
+      "primary_audience": "Minecraft players and short-form video challenge fans.",
+      "interest_clusters": [
+        "Gaming",
+        "Minecraft",
+        "Visual Puzzles"
+      ],
+      "confidence": "high",
+      "rationale": "Uses official Minecraft aesthetics and interactive challenge format."
+    },
+    "hook": {
+      "hook_types": [
+        "challenge",
+        "countdown",
+        "curiosity_gap"
+      ],
+      "promise": "Test your visual observation skills in 10 seconds.",
+      "confidence": "high",
+      "rationale": "Direct question creates immediate curiosity."
+    },
+    "narrative": {
+      "story_summary": "Pond is built, frog challenge is posed, search time runs, answer is revealed.",
+      "arc": "setup_challenge_search_reveal",
+      "payoff": "Reveal that there are 15 frogs.",
+      "confidence": "high",
+      "rationale": "Clear game show style structure."
+    },
+    "marketing": {
+      "mechanisms": [
+        "challenge",
+        "time_pressure",
+        "participation",
+        "payoff_reveal"
+      ],
+      "confidence": "high",
+      "rationale": "Gamified interaction drives high retention and comments."
+    },
+    "commercial": {
+      "status": "not_applicable",
+      "problem": "N/A",
+      "desire": "N/A",
+      "promise": "N/A",
+      "offer": "N/A",
+      "proof_type": "not_applicable",
+      "trust_signals": [],
+      "objections_addressed": [],
+      "cta_type": "not_applicable",
+      "confidence": "high",
+      "rationale": "Organic engagement content without brand commercial promotion."
+    }
+  },
+  "generation": {
+    "global_reconstruction_brief": "Create a 24-second vertical video featuring a Minecraft pond build followed by a timed frog counting game and reveal.",
+    "shot_order": [
+      "shot_0",
+      "shot_1",
+      "shot_2",
+      "shot_3",
+      "shot_4"
+    ],
+    "global_constraints": [
+      "Maintain 9:16 vertical video layout",
+      "Use consistent Minecraft block aesthetic and frog models",
+      "Match precise challenge text overlays and countdown pacing"
+    ]
+  }
+}
