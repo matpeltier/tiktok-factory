@@ -1,3 +1,8 @@
 .factory/runtime/
 __pycache__/
 .pytest_cache/
+
+# Dark Kitchen runtime
+.dark-kitchen/runtime/
+.dark-kitchen/.env
+.env

@@ -1,11 +1,35 @@
 {
-  "model": "gemini-3.6-flash",
-  "recorded_at": "2026-08-17T09:27:58.470545+00:00",
+  "provider": "openrouter",
+  "model": "google/gemini-3.8-flash",
+  "recorded_at": "2026-09-02T20:51:05.096867+00:00",
   "video_id": "7106594312292453675",
-  "usage_metadata": {
-    "candidates_token_count": 5068,
-    "thoughts_token_count": 1015,
-    "total_token_count": 12595
-  },
-  "cost": "Gemini API pricing is model/account dependent; no cost was returned by the SDK. Consult the model pricing page using the recorded model and token counts."
+  "calls": [
+    {
+      "pass": "shot_analysis",
+      "prompt_version": "openrouter-gemini-shot-analysis-v0.1",
+      "response_id": "gen-1788382203-0e0w3D64oKLbfBZrPxJH",
+      "finish_reason": "stop",
+      "repairs": 0,
+      "usage": {
+        "prompt_tokens": 6670,
+        "completion_tokens": 5726,
+        "total_tokens": 12396,
+        "cost_usd": 0.02621025
+      }
+    },
+    {
+      "pass": "global_synthesis",
+      "prompt_version": "openrouter-gemini-global-synthesis-v0.1",
+      "response_id": "gen-1788382229-XwietmVwonm32fGYFHPb",
+      "finish_reason": "stop",
+      "repairs": 0,
+      "usage": {
+        "prompt_tokens": 7767,
+        "completion_tokens": 2532,
+        "total_tokens": 10299,
+        "cost_usd": 0.0151670475
+      }
+    }
+  ],
+  "cost_usd_total": 0.041377
 }
