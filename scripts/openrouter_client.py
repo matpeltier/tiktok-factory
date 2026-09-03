@@ -163,24 +163,36 @@ def call_openrouter(
                 except ValueError as exc:
                     last_error = OpenRouterError(f"OpenRouter returned non-JSON 200 body: {exc}")
                 else:
-                    choice = (body.get("choices") or [{}])[0]
-                    message = choice.get("message") or {}
-                    text = message.get("content")
-                    if not text:
-                        raise OpenRouterError(
-                            "Model returned empty content "
-                            f"(finish_reason={choice.get('finish_reason')!r}). "
-                            "Increase max_tokens so reasoning plus the full JSON answer fit."
+                    # OpenRouter sometimes reports provider errors inside a 200
+                    # response (e.g. 413 payload-too-large) instead of an HTTP
+                    # error status; surface them with their real code.
+                    embedded = body.get("error") if isinstance(body, dict) else None
+                    if embedded:
+                        code = embedded.get("code") if isinstance(embedded.get("code"), int) else 500
+                        error = OpenRouterHTTPError(code, str(embedded.get("message"))[:500])
+                        if code in RETRYABLE_STATUS_CODES:
+                            last_error = error
+                        else:
+                            raise error
+                    else:
+                        choice = (body.get("choices") or [{}])[0]
+                        message = choice.get("message") or {}
+                        text = message.get("content")
+                        if not text:
+                            raise OpenRouterError(
+                                "Model returned empty content "
+                                f"(finish_reason={choice.get('finish_reason')!r}). "
+                                "Increase max_tokens so reasoning plus the full JSON answer fit."
+                            )
+                        usage = dict(body.get("usage") or {})
+                        return CallResult(
+                            content=text,
+                            model=body.get("model", model),
+                            response_id=body.get("id", ""),
+                            finish_reason=choice.get("finish_reason"),
+                            usage=usage,
+                            raw=body,
                         )
-                    usage = dict(body.get("usage") or {})
-                    return CallResult(
-                        content=text,
-                        model=body.get("model", model),
-                        response_id=body.get("id", ""),
-                        finish_reason=choice.get("finish_reason"),
-                        usage=usage,
-                        raw=body,
-                    )
             elif response.status_code in RETRYABLE_STATUS_CODES:
                 last_error = OpenRouterHTTPError(response.status_code, response.text[:500])
             else:

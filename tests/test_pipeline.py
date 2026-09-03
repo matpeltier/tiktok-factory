@@ -374,3 +374,30 @@ def test_strip_meta_keys_removes_schema_echo():
     assert "$schema" not in cleaned
     assert "$comment" not in cleaned["observed"]["shots"][0]
     assert cleaned["observed"]["shots"][0]["shot_id"] == "shot_0"
+
+
+def test_budget_cap_stops_when_spent(tmp_path, monkeypatch):
+    import pilot as pilot_mod
+
+    records = tmp_path / "records"
+    (records / "a").mkdir(parents=True)
+    (records / "a" / "record.json").write_text(json.dumps({"cost_usd": 0.5}))
+
+    monkeypatch.setattr(pilot_mod, "RECORDS_DIR", records)
+    budget = pilot_mod.Budget(1.0)
+    assert budget._spent == 0.5
+    assert budget.reserve("m") is True
+    budget.commit(0.6)
+    # cap reached: no further reservation
+    assert budget.reserve("m") is False
+    assert budget.reserve("m") is False
+
+
+def test_budget_none_is_unlimited(tmp_path, monkeypatch):
+    import pilot as pilot_mod
+
+    monkeypatch.setattr(pilot_mod, "RECORDS_DIR", tmp_path)
+    budget = pilot_mod.Budget(None)
+    for _ in range(5):
+        assert budget.reserve("m") is True
+        budget.commit(100.0)

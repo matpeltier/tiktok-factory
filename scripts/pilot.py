@@ -15,6 +15,7 @@ import argparse
 import json
 import subprocess
 import sys
+import threading
 import time
 import traceback
 from datetime import datetime, timezone
@@ -138,76 +139,144 @@ def has_video_stream(video_path: Path) -> bool:
     return "video" in out.stdout
 
 
+def _recorded_cost() -> float:
+    """Total cost already recorded across all record.json files."""
+    total = 0.0
+    for record_json in RECORDS_DIR.glob("*/record.json"):
+        try:
+            cost = json.loads(record_json.read_text(encoding="utf-8")).get("cost_usd")
+            if isinstance(cost, (int, float)):
+                total += cost
+        except (json.JSONDecodeError, OSError):
+            continue
+    return total
+
+
+def process_record(record_dir: Path, position: str, model: str, budget: "Budget") -> None:
+    """Decompile one record directory with per-video failure isolation."""
+    video_id = record_dir.name
+    video_path = record_dir / "video.mp4"
+    metadata_path = record_dir / "metadata.json"
+    parsed_path = record_dir / "creative_ir.parsed.json"
+    if parsed_path.exists():
+        print(f"{position} {video_id}: already decompiled", flush=True)
+        return
+    if not video_path.exists() or not metadata_path.exists():
+        print(f"{position} {video_id}: missing inputs, skipping", flush=True)
+        return
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if not has_video_stream(video_path):
+        record = {
+            "video_id": video_id,
+            "source_url": metadata.get("source_url"),
+            "status": "skipped_no_video_stream",
+            "failure_reason": "source is an audio-only slideshow post (no video stream)",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        (record_dir / "record.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+        print(f"{position} {video_id}: skipped (audio-only slideshow post)", flush=True)
+        return
+    if not budget.reserve(model):
+        print(f"{position} {video_id}: budget cap reached, leaving unprocessed", flush=True)
+        return
+
+    state = load_record_state(record_dir)
+    attempts = state.get("attempts", 0) + 1
+    started = time.monotonic()
+    record = {
+        "video_id": video_id,
+        "source_url": metadata.get("source_url"),
+        "schema_version": "0.1",
+        "prompt_versions": "openrouter-gemini-shot-analysis-v0.1+openrouter-gemini-global-synthesis-v0.1",
+        "pipeline_version": PIPELINE_VERSION,
+        "model": model,
+        "attempts": attempts,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        usage = decompile_video(video_path, metadata, record_dir, SCHEMA_PATH, model=model)
+        elapsed = time.monotonic() - started
+        cost = usage.get("cost_usd_total")
+        record.update(
+            {
+                "status": "ok",
+                "latency_seconds": round(elapsed, 1),
+                "cost_usd": cost,
+                "tokens_total": sum(
+                    (c["usage"].get("total_tokens") or 0) for c in usage.get("calls", [])
+                ),
+                "repair_passes": sum(c.get("repairs", 0) for c in usage.get("calls", [])),
+            }
+        )
+        budget.commit(cost if isinstance(cost, (int, float)) else 0.0)
+        print(f"{position} {video_id}: OK in {elapsed:.0f}s, cost=${cost}", flush=True)
+    except Exception as exc:
+        elapsed = time.monotonic() - started
+        record.update(
+            {
+                "status": "failed",
+                "latency_seconds": round(elapsed, 1),
+                "failure_reason": f"{type(exc).__name__}: {exc}",
+                "failure_traceback": traceback.format_exc()[-2000:],
+            }
+        )
+        print(f"{position} {video_id}: FAILED after {elapsed:.0f}s: {exc}", flush=True)
+    (record_dir / "record.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+
+
+class Budget:
+    """Thread-safe cumulative spend tracker with a hard cap in USD.
+
+    In-flight videos may overshoot the cap by at most one video cost each
+    (cost is only known after completion); the reservation check keeps the
+    total bounded to cap + workers × per-video cost.
+    """
+
+    def __init__(self, max_cost_usd: float | None):
+        self.max_cost = max_cost_usd
+        self._lock = threading.Lock()
+        self._spent = _recorded_cost()
+        self._stopped = False
+        if max_cost_usd is not None:
+            print(f"Budget: ${self._spent:.2f} already recorded, cap ${max_cost_usd:.2f}", flush=True)
+
+    def reserve(self, model: str) -> bool:
+        with self._lock:
+            if self._stopped:
+                return False
+            if self.max_cost is not None and self._spent >= self.max_cost:
+                self._stopped = True
+                return False
+            return True
+
+    def commit(self, cost: float) -> None:
+        with self._lock:
+            self._spent += cost
+
+
 def cmd_run(args: argparse.Namespace) -> None:
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     from pipeline import DEFAULT_MODEL
 
     record_dirs = sorted(d for d in RECORDS_DIR.iterdir() if d.is_dir()) if RECORDS_DIR.exists() else []
     if args.limit:
         record_dirs = record_dirs[: args.limit]
-    print(f"Processing {len(record_dirs)} records with model {DEFAULT_MODEL}")
-    for i, record_dir in enumerate(record_dirs, 1):
-        video_id = record_dir.name
-        video_path = record_dir / "video.mp4"
-        metadata_path = record_dir / "metadata.json"
-        parsed_path = record_dir / "creative_ir.parsed.json"
-        if parsed_path.exists():
-            print(f"[{i}/{len(record_dirs)}] {video_id}: already decompiled")
-            continue
-        if not video_path.exists() or not metadata_path.exists():
-            print(f"[{i}/{len(record_dirs)}] {video_id}: missing inputs, skipping")
-            continue
-        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        if not has_video_stream(video_path):
-            record = {
-                "video_id": video_id,
-                "source_url": metadata.get("source_url"),
-                "status": "skipped_no_video_stream",
-                "failure_reason": "source is an audio-only slideshow post (no video stream)",
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+    workers = max(1, args.workers)
+    budget = Budget(args.max_cost)
+    total = len(record_dirs)
+    print(f"Processing {total} records with model {DEFAULT_MODEL} ({workers} workers)", flush=True)
+    if workers == 1:
+        for i, record_dir in enumerate(record_dirs, 1):
+            process_record(record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {
+                pool.submit(process_record, record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget): record_dir
+                for i, record_dir in enumerate(record_dirs, 1)
             }
-            (record_dir / "record.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
-            print(f"[{i}/{len(record_dirs)}] {video_id}: skipped (audio-only slideshow post)")
-            continue
-        state = load_record_state(record_dir)
-        attempts = state.get("attempts", 0) + 1
-        started = time.monotonic()
-        record = {
-            "video_id": video_id,
-            "source_url": metadata.get("source_url"),
-            "schema_version": "0.1",
-            "prompt_versions": "openrouter-gemini-shot-analysis-v0.1+openrouter-gemini-global-synthesis-v0.1",
-            "pipeline_version": PIPELINE_VERSION,
-            "model": DEFAULT_MODEL,
-            "attempts": attempts,
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-        }
-        try:
-            usage = decompile_video(video_path, metadata, record_dir, SCHEMA_PATH, model=DEFAULT_MODEL)
-            elapsed = time.monotonic() - started
-            record.update(
-                {
-                    "status": "ok",
-                    "latency_seconds": round(elapsed, 1),
-                    "cost_usd": usage.get("cost_usd_total"),
-                    "tokens_total": sum(
-                        (c["usage"].get("total_tokens") or 0) for c in usage.get("calls", [])
-                    ),
-                    "repair_passes": sum(c.get("repairs", 0) for c in usage.get("calls", [])),
-                }
-            )
-            print(f"[{i}/{len(record_dirs)}] {video_id}: OK in {elapsed:.0f}s, cost=${usage.get('cost_usd_total')}")
-        except Exception as exc:
-            elapsed = time.monotonic() - started
-            record.update(
-                {
-                    "status": "failed",
-                    "latency_seconds": round(elapsed, 1),
-                    "failure_reason": f"{type(exc).__name__}: {exc}",
-                    "failure_traceback": traceback.format_exc()[-2000:],
-                }
-            )
-            print(f"[{i}/{len(record_dirs)}] {video_id}: FAILED after {elapsed:.0f}s: {exc}")
-        (record_dir / "record.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+            for future in as_completed(futures):
+                future.result()
 
 
 INDEX_FIELDS = [
@@ -339,6 +408,8 @@ def main() -> None:
 
     p_run = sub.add_parser("run", help="decompile collected videos")
     p_run.add_argument("--limit", type=int, default=None)
+    p_run.add_argument("--workers", type=int, default=1, help="parallel decompilation workers")
+    p_run.add_argument("--max-cost", type=float, default=None, help="hard spend cap in USD (recorded costs included)")
     p_run.set_defaults(func=cmd_run)
 
     p_index = sub.add_parser("index", help="build Parquet index")

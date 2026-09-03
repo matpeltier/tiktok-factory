@@ -273,3 +273,28 @@ def test_text_only_call_sends_plain_string_content(monkeypatch):
     monkeypatch.setattr(orc.requests, "post", fake_post)
     orc.call_openrouter("fix this json")
     assert captured["json"]["messages"][0]["content"] == "fix this json"
+
+
+def test_call_openrouter_surfaces_embedded_413(monkeypatch):
+    body = {"id": "x", "error": {"message": "Request body exceeds the provider maximum size", "code": 413}}
+    monkeypatch.setattr(orc.requests, "post", lambda *a, **k: FakeResponse(200, body))
+    with pytest.raises(orc.OpenRouterHTTPError) as exc_info:
+        orc.call_openrouter("hello")
+    assert exc_info.value.status_code == 413
+
+
+def test_call_openrouter_embedded_retryable_error_retries(monkeypatch):
+    calls = []
+    body = {"id": "x", "error": {"message": "provider overloaded", "code": 503}}
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        calls.append(1)
+        if len(calls) < 2:
+            return FakeResponse(200, body)
+        return FakeResponse(200, _completion_body())
+
+    monkeypatch.setattr(orc.requests, "post", fake_post)
+    monkeypatch.setattr(orc.time, "sleep", lambda seconds: None)
+    result = orc.call_openrouter("hello", retries=2)
+    assert len(calls) == 2
+    assert result.content == '{"ok": true}'
