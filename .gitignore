@@ -6,3 +6,6 @@ __pycache__/
 .dark-kitchen/runtime/
 .dark-kitchen/.env
 .env
+
+# Dataset pilot artifacts (media stays local)
+dataset/
