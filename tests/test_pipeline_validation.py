@@ -5,6 +5,8 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 from perceive import probe_media, detect_scenes
 
@@ -25,7 +27,7 @@ def _video_path():
 def test_schema_validates_baseline():
     baseline = DROPS_DIR / "creative_ir.parsed.json"
     if not baseline.exists():
-        return
+        pytest.skip("No committed CreativeIR baseline available")
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
     ir = json.loads(baseline.read_text(encoding="utf-8"))
     Draft202012Validator(schema).validate(ir)
@@ -34,7 +36,7 @@ def test_schema_validates_baseline():
 def test_perception_matches_schema_requirements():
     vp = _video_path()
     if vp is None:
-        return
+        pytest.skip("No sample video fixture available")
     media = probe_media(vp)
     scenes = detect_scenes(vp)
     assert media.duration_seconds > 0
@@ -46,7 +48,7 @@ def test_perception_matches_schema_requirements():
 def test_temporal_integrity_baseline():
     baseline = DROPS_DIR / "creative_ir.parsed.json"
     if not baseline.exists():
-        return
+        pytest.skip("No committed CreativeIR baseline available")
     ir = json.loads(baseline.read_text(encoding="utf-8"))
     duration = ir["source"]["observed"]["duration_seconds"]
     shots = ir["observed"]["shots"]
@@ -65,7 +67,7 @@ def test_improved_boundaries_are_detected():
     """The improved pipeline should detect more boundaries than the baseline's 5 shots."""
     vp = _video_path()
     if vp is None:
-        return
+        pytest.skip("No sample video fixture available")
     scenes = detect_scenes(vp)
     assert len(scenes) >= 5, f"Expected at least 5 detected scenes, got {len(scenes)}"
 
@@ -73,7 +75,7 @@ def test_improved_boundaries_are_detected():
 def test_perception_duration_matches_video():
     vp = _video_path()
     if vp is None:
-        return
+        pytest.skip("No sample video fixture available")
     media = probe_media(vp)
     scenes = detect_scenes(vp)
     # Last scene end should match duration within tolerance

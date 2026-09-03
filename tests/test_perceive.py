@@ -3,6 +3,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 from perceive import probe_media, detect_scenes, PerceptionResult
 
@@ -21,7 +23,7 @@ def _video_path():
 def test_probe_media_returns_exact_facts():
     vp = _video_path()
     if vp is None:
-        return
+        pytest.skip("No sample video fixture available")
     result = probe_media(vp)
     assert isinstance(result, PerceptionResult)
     assert result.duration_seconds > 0
@@ -38,7 +40,7 @@ def test_probe_media_returns_exact_facts():
 def test_probe_media_sample_video_specifics():
     vp = _video_path()
     if vp is None:
-        return
+        pytest.skip("No sample video fixture available")
     result = probe_media(vp)
     assert abs(result.duration_seconds - 24.39) < 0.1, f"Expected ~24.39s, got {result.duration_seconds}"
     assert result.width == 576
@@ -49,7 +51,7 @@ def test_probe_media_sample_video_specifics():
 def test_probe_media_to_dict():
     vp = _video_path()
     if vp is None:
-        return
+        pytest.skip("No sample video fixture available")
     result = probe_media(vp)
     d = result.to_dict()
     assert isinstance(d, dict)
@@ -69,7 +71,7 @@ def test_probe_media_missing_file():
 def test_detect_scenes_returns_boundaries():
     vp = _video_path()
     if vp is None:
-        return
+        pytest.skip("No sample video fixture available")
     scenes = detect_scenes(vp)
     assert len(scenes) >= 4, f"Expected >=4 scenes, got {len(scenes)}"
     for i, scene in enumerate(scenes):
@@ -84,7 +86,7 @@ def test_detect_scenes_returns_boundaries():
 def test_detect_scenes_sample_video_count():
     vp = _video_path()
     if vp is None:
-        return
+        pytest.skip("No sample video fixture available")
     scenes = detect_scenes(vp)
     assert len(scenes) >= 5, f"Expected at least 5 scenes, got {len(scenes)}"
 
@@ -98,7 +100,7 @@ def test_detect_scenes_missing_file():
 def test_probe_media_to_dict_serializable():
     vp = _video_path()
     if vp is None:
-        return
+        pytest.skip("No sample video fixture available")
     result = probe_media(vp)
     d = result.to_dict()
     # Must be JSON-serializable

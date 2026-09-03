@@ -1,0 +1,263 @@
+{
+  "creative_ir_version": "0.1",
+  "decompilation": {
+    "model": "google/gemini-3.8-flash",
+    "prompt_version": "openrouter-gemini-global-synthesis-v0.1",
+    "schema_version": "0.1",
+    "created_at": "2024-03-29T12:00:00Z",
+    "pipeline_version": "1.0.0",
+    "annotator_type": "automated"
+  },
+  "source": {
+    "observed": {
+      "platform": "tiktok",
+      "source_url": "https://www.tiktok.com/@tiktok/video/7106594312292453675",
+      "video_id": "7106594312292453675",
+      "creator_handle": "tiktok",
+      "creator_display_name": "TikTok",
+      "caption": "how many frogs did you find? 🐸 check out tiktok’s #Minecraft community today! @Gorillo",
+      "hashtags": [
+        "Minecraft"
+      ],
+      "publication_date": "2022-06-07",
+      "duration_seconds": 24.401995,
+      "aspect_ratio": "vertical_9_16",
+      "frame_size": {
+        "width": 576,
+        "height": 1024
+      },
+      "asset_references": [
+        "Minecraft gameplay recording"
+      ],
+      "evidence": [
+        {
+          "kind": "metadata",
+          "note": "Platform metadata and dimensions recorded directly from source video."
+        }
+      ]
+    }
+  },
+  "observed": {
+    "context": {
+      "visible_subject": "A Minecraft pond construction timelapse followed by an interactive hidden-object search for Minecraft frogs.",
+      "caption_signal": "Direct invitation to count the frogs and explore the Minecraft creator community.",
+      "evidence": [
+        {
+          "kind": "video",
+          "time_range": {
+            "start_seconds": 0.0,
+            "end_seconds": 4.972
+          },
+          "note": "Timelapse of pond construction."
+        },
+        {
+          "kind": "caption",
+          "note": "Caption prompts viewer: 'how many frogs did you find? 🐸 check out tiktok’s #Minecraft community today! @Gorillo'"
+        }
+      ]
+    },
+    "hook": {
+      "shot_ids": [
+        "shot_0",
+        "shot_1"
+      ],
+      "text_ids": [],
+      "visual_summary": "Timelapse building sequence of a frog pond transitioning into a 10-second counting challenge graphic card featuring a 3D Minecraft frog.",
+      "evidence": [
+        {
+          "kind": "on_screen_text",
+          "time_range": {
+            "start_seconds": 0.0,
+            "end_seconds": 6.974
+          },
+          "note": "Onscreen prompts establish the narrative framing and prompt the timed search."
+        }
+      ]
+    },
+    "narrative": {
+      "beats": [
+        {
+          "beat_id": "beat_0",
+          "label": "setup",
+          "shot_ids": [
+            "shot_0"
+          ],
+          "time_range": {
+            "start_seconds": 0.0,
+            "end_seconds": 4.972
+          },
+          "visible_event": "Gorillo builds a cozy natural pond in Minecraft using stones, water, and foliage."
+        },
+        {
+          "beat_id": "beat_1",
+          "label": "challenge",
+          "shot_ids": [
+            "shot_1"
+          ],
+          "time_range": {
+            "start_seconds": 4.972,
+            "end_seconds": 6.974
+          },
+          "visible_event": "Prompt screen introduces the timed challenge: find how many frogs are hidden in 10 seconds."
+        },
+        {
+          "beat_id": "beat_2",
+          "label": "search",
+          "shot_ids": [
+            "shot_2",
+            "shot_3"
+          ],
+          "time_range": {
+            "start_seconds": 6.974,
+            "end_seconds": 19.753
+          },
+          "visible_event": "A fixed isometric view of the pond is displayed while viewers actively scan and count the hidden frogs."
+        },
+        {
+          "beat_id": "beat_3",
+          "label": "reveal",
+          "shot_ids": [
+            "shot_4"
+          ],
+          "time_range": {
+            "start_seconds": 19.753,
+            "end_seconds": 21.722
+          },
+          "visible_event": "The pond background disappears leaving only the 15 frogs against black alongside the bold number '15'."
+        },
+        {
+          "beat_id": "beat_4",
+          "label": "payoff",
+          "shot_ids": [
+            "shot_5"
+          ],
+          "time_range": {
+            "start_seconds": 21.722,
+            "end_seconds": 24.391
+          },
+          "visible_event": "Return to the peaceful scenic pond view populated by the frogs as the clip finishes."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "video",
+          "time_range": {
+            "start_seconds": 0.0,
+            "end_seconds": 24.391
+          },
+          "note": "Linear visual progression through setup, title card, puzzle search duration, answer reveal, and visual outro."
+        }
+      ]
+    },
+    "marketing": {
+      "call_to_action_text_ids": [],
+      "engagement_devices": [
+        "explicit_question",
+        "countdown",
+        "hidden_object",
+        "delayed_reveal"
+      ],
+      "evidence": [
+        {
+          "kind": "on_screen_text",
+          "time_range": {
+            "start_seconds": 4.972,
+            "end_seconds": 6.974
+          },
+          "note": "'how many frogs can you find in 10 seconds?' directly gamifies viewer watch time."
+        }
+      ]
+    },
+    "commercial": {
+      "product_presence": "absent",
+      "evidence": [
+        {
+          "kind": "video",
+          "time_range": {
+            "start_seconds": 0.0,
+            "end_seconds": 24.391
+          },
+          "note": "Organic gaming community spotlight; no physical product or direct purchase offer."
+        }
+      ]
+    }
+  },
+  "inferred": {
+    "overall_concept": {
+      "premise": "A cozy Minecraft pond build transforms into a hidden-object visual counting game for viewers.",
+      "format": "challenge",
+      "viewer_action": "Pause or intently scan the screen to count all hidden green frogs before time runs out.",
+      "confidence": "high",
+      "rationale": "The structure clearly presents a build timelapse, posits a direct question with a time limit, holds on the puzzle, and reveals the count."
+    },
+    "target_audience": {
+      "primary_audience": "Minecraft players, cozy gaming enthusiasts, and short-form puzzle/challenge consumers.",
+      "interest_clusters": [
+        "Minecraft building",
+        "Gaming aesthetics",
+        "Brain teasers",
+        "TikTok games"
+      ],
+      "confidence": "high",
+      "rationale": "Features iconic Minecraft frog mobs, isometric aesthetic lighting/shaders, and gamified viewer engagement."
+    },
+    "hook": {
+      "hook_types": [
+        "challenge",
+        "visual_novelty"
+      ],
+      "promise": "An interactive 10-second observational game testing visual acuity.",
+      "confidence": "high",
+      "rationale": "Shot 1 explicitly sets up the challenge format immediately following the brief timelapse hook."
+    },
+    "narrative": {
+      "story_summary": "A builder crafts a haven for frogs in Minecraft, inviting the audience into a quick observational game to locate and count every frog nestled in the greenery.",
+      "arc": "setup_challenge_search_reveal",
+      "payoff": "The clean isolation of all 15 frogs against a black background confirming the correct count.",
+      "confidence": "high",
+      "rationale": "Follows the standard interactive puzzle arc from setup to reveal."
+    },
+    "marketing": {
+      "mechanisms": [
+        "challenge",
+        "participation",
+        "time_pressure",
+        "payoff_reveal"
+      ],
+      "confidence": "high",
+      "rationale": "Encourages 100% video completion and re-watches by forcing viewers to scrutinize the screen for 10 full seconds."
+    },
+    "commercial": {
+      "status": "brand_awareness",
+      "problem": "Viewers seeking bite-sized entertainment or inspiring Minecraft build aesthetics.",
+      "desire": "Test observation skills and engage with cozy gaming content.",
+      "promise": "Fun, quick challenge with immediate gratification.",
+      "offer": "Content enjoyment and encouragement to check out TikTok's Minecraft creator community.",
+      "proof_type": "demonstration",
+      "trust_signals": [
+        "demonstration"
+      ],
+      "objections_addressed": [],
+      "cta_type": "comment",
+      "confidence": "medium",
+      "rationale": "Published by official TikTok channel promoting platform creator @Gorillo and Minecraft community engagement."
+    }
+  },
+  "generation": {
+    "global_reconstruction_brief": "Create a 24-second vertical gaming video structured as an interactive hidden-object challenge:\n1. (0.0 - 5.0s): High-angle isometric timelapse of constructing a circular stone-and-flower pond in Minecraft. Center text: 'Gorillo built a pond for a family of frogs...'.\n2. (5.0 - 7.0s): Cut to full black screen with a 3D green Minecraft frog model and bold text: 'how many frogs can you find in 10 seconds?'.\n3. (7.0 - 19.8s): Static held isometric wide shot of the pond decorated with foliage, lily pads, lanterns, and 15 frogs distributed across the terrain (some submerged, some tucked into bushes). The shot holds for approximately 12 seconds with atmospheric sound effects and subtle ambient music.\n4. (19.8 - 21.7s): Answer reveal graphic: all background scenery cuts out to pure black, leaving only the 15 frogs in their exact positions, overlaid with a bold, centered white '15'.\n5. (21.7 - 24.4s): Cut back to the peaceful pond environment for a clean resolution outro.",
+    "shot_order": [
+      "shot_0",
+      "shot_1",
+      "shot_2",
+      "shot_3",
+      "shot_4",
+      "shot_5"
+    ],
+    "global_constraints": [
+      "Keep vertical 9:16 aspect ratio.",
+      "Maintain consistent isometric high-angle camera angle between build, search, and payoff shots.",
+      "Frog positions during the reveal screen must perfectly match their coordinates during the search phase.",
+      "Do not display counting clues or timer numbers on the search screen to maximize organic visual searching."
+    ]
+  }
+}
