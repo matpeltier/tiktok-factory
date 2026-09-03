@@ -53,31 +53,67 @@ def extract_scene_frames(video_path: Path, scenes: list[dict], frame_dir: Path) 
     return frame_paths
 
 
-MODEL_VIDEO_MAX_BYTES = 20 * 1024 * 1024
+# OpenRouter/Google AI Studio rejects request bodies over 20MB; the base64
+# data URL inflates the file by ~4/3, so the file must stay below ~14.5MB.
+MODEL_VIDEO_MAX_BYTES = 14_000_000
+
+
+def _video_codec(video_path: Path) -> str | None:
+    """Codec of the first video stream, or None if absent/unreadable."""
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,codec_name", "-of", "json", str(video_path)],
+        capture_output=True,
+        text=True,
+    )
+    try:
+        streams = json.loads(out.stdout).get("streams", [])
+        for stream in streams:
+            if stream.get("codec_type") == "video":
+                return stream.get("codec_name")
+    except json.JSONDecodeError:
+        pass
+    return None
 
 
 def ensure_model_proxy(video_path: Path, source_dir: Path) -> Path:
-    """Return a path suitable for the model call: the original, or a 720p proxy.
+    """Return a path suitable for the model call: the original, or a proxy.
 
-    Large uploads fail or truncate on the provider side. The proxy is only
-    what the model SEES: every deterministic fact is still measured on the
-    original file by ffprobe/PySceneDetect. Idempotent per video.
+    The proxy is needed when the file is large (> 14MB) or not H.264:
+    TikTok serves HEVC (`bytevc1`/h265) for 1080p downloads and the provider
+    fails to decode those, and bodies over 20MB (base64-inflated) are rejected.
+    The proxy downscales to 540px width and re-encodes H.264 so the request
+    body stays well under the provider limit. It is only what the model SEES:
+    every deterministic fact is still measured on the original file by
+    ffprobe/PySceneDetect. Idempotent per video; oversized stale proxies are
+    regenerated.
     """
-    if video_path.stat().st_size <= MODEL_VIDEO_MAX_BYTES:
-        return video_path
     proxy_path = source_dir / "video.proxy.mp4"
-    if not proxy_path.exists():
-        subprocess.run(
-            [
-                "ffmpeg", "-y", "-i", str(video_path),
-                "-vf", "scale='min(720,iw)':-2",
-                "-c:v", "libx264", "-crf", "28", "-preset", "fast",
-                "-c:a", "aac", "-b:a", "96k",
-                str(proxy_path),
-            ],
-            capture_output=True,
-            check=True,
-        )
+    needs_proxy = video_path.stat().st_size > MODEL_VIDEO_MAX_BYTES or _video_codec(video_path) not in (None, "h264")
+    if not needs_proxy:
+        return video_path
+    if proxy_path.exists():
+        if 0 < proxy_path.stat().st_size <= MODEL_VIDEO_MAX_BYTES:
+            return proxy_path
+        proxy_path.unlink()
+
+    width = None
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "stream=width", "-select_streams", "v:0", "-of", "csv=p=0", str(video_path)],
+        capture_output=True,
+        text=True,
+    )
+    try:
+        width = int(out.stdout.strip().splitlines()[0])
+    except (ValueError, IndexError):
+        width = None
+
+    cmd = ["ffmpeg", "-y", "-i", str(video_path)]
+    if width is None or width > 540:
+        # scale=720:-2 style expressions with commas break ffmpeg filter args;
+        # use an explicit target width decided in Python instead.
+        cmd += ["-vf", "scale=540:-2"]
+    cmd += ["-c:v", "libx264", "-crf", "30", "-preset", "fast", "-c:a", "aac", "-b:a", "96k", str(proxy_path)]
+    subprocess.run(cmd, capture_output=True, check=True)
     return proxy_path
 
 
