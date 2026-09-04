@@ -458,3 +458,15 @@ def test_cmd_run_keyword_filter_skips_mismatch(tmp_path, monkeypatch):
 
     assert json.loads((tmp_path / "match1" / "record.json").read_text())["status"] == "ok"
     assert json.loads((tmp_path / "nope1" / "record.json").read_text())["status"] == "skipped_product_mismatch"
+
+
+def test_fill_empty_strings_replaces_violations_and_logs():
+    from pipeline import fill_empty_strings
+
+    ir = _minimal_ir()
+    ir["observed"]["commercial"] = {"offer_text": "", "cta_text": "link in bio", "product_mentions": ["chopper"]}
+    schema = json.loads(SCHEMA_PATH.read_text())
+    filled, log = fill_empty_strings(ir, schema)
+    assert filled["observed"]["commercial"]["offer_text"] == "not_specified"
+    assert filled["observed"]["commercial"]["cta_text"] == "link in bio"
+    assert {"path": "$.observed.commercial.offer_text", "from": "", "to": "not_specified"} in log
