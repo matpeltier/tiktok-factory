@@ -83,6 +83,18 @@ def video_data_url(video_path: Path | str) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
+def image_data_url_part(image_path: Path | str) -> dict:
+    """Build an `image_url` content part from a local image file."""
+    image_path = Path(image_path)
+    if not image_path.exists():
+        raise FileNotFoundError(f"Image not found: {image_path}")
+    mime = mimetypes.guess_type(image_path.name)[0] or "image/jpeg"
+    if not mime.startswith("image/"):
+        raise OpenRouterError(f"Unsupported image mime type for {image_path.name}: {mime}")
+    encoded = base64.b64encode(image_path.read_bytes()).decode("ascii")
+    return {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{encoded}"}}
+
+
 def parse_json_content(content: str) -> dict:
     """Parse a model response that must be a JSON object, tolerating code fences."""
     text = content.strip()
@@ -106,6 +118,7 @@ def call_openrouter(
     prompt: str,
     *,
     video_path: Path | str | None = None,
+    image_paths: list[Path | str] | None = None,
     system: str | None = None,
     model: str = DEFAULT_MODEL,
     temperature: float = 0.0,
@@ -114,7 +127,11 @@ def call_openrouter(
     retries: int = MAX_RETRIES,
     json_mode: bool = False,
 ) -> CallResult:
-    """Send one chat completion to OpenRouter, optionally with a local video.
+    """Send one chat completion to OpenRouter, optionally with media.
+
+    Videos are sent as a single base64 data URL (`video_url` part); images as
+    `image_url` parts. Some providers enforce a higher billing minimum on
+    video requests than on images.
 
     With ``json_mode=True`` the response is constrained to a syntactically valid
     JSON object (equivalent to Gemini's ``response_mime_type="application/json"``)
@@ -123,11 +140,15 @@ def call_openrouter(
     Returns a CallResult with the assistant content and the usage/cost reported
     by OpenRouter. Retries transient HTTP failures with linear backoff.
     """
+    content_parts: list[dict] = []
     if video_path is not None:
-        content: list[dict] | str = [
-            {"type": "video_url", "video_url": {"url": video_data_url(video_path)}},
-            {"type": "text", "text": prompt},
-        ]
+        content_parts.append({"type": "video_url", "video_url": {"url": video_data_url(video_path)}})
+    for image_path in image_paths or []:
+        content_parts.append(image_data_url_part(image_path))
+    content: list[dict] | str
+    if content_parts:
+        content_parts.append({"type": "text", "text": prompt})
+        content = content_parts
     else:
         content = prompt
 
