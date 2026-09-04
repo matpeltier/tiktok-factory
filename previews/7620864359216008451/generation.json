@@ -1,0 +1,84 @@
+{
+  "created_at": "2026-09-04T08:22:48.969877+00:00",
+  "prompt_version": "creativeir-shot-gen-v0.1",
+  "aspect_ratio": "9:16",
+  "providers": [
+    "omni-flash",
+    "veo3.1-lite"
+  ],
+  "shots": [
+    {
+      "shot_id": "shot_0",
+      "provider": "omni-flash",
+      "endpoint_id": "google/gemini-omni-flash/v1.1/text-to-video",
+      "prompt": "Isometric wide angle view over a Minecraft grassy terrain with marked plots and a road.\nMaintain continuity: Maintain consistent Minecraft shader lighting and texture pack.; Maintain consistent Minecraft shaderpack with soft directional sunlight and realistic foliage shadows.; Preserve 9:16 vertical orientation with all critical UI and overlay text centered within safety zones.; Voiceover must remain calm, rhythmic, British-accented, and synchronized to building actions.; Continuous subtle background acoustic guitar or lo-fi instrumental mix throughout.\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_0_omni-flash.mp4",
+      "clip_url": "https://v3b.fal.media/files/b/0aa90ce3/c80G_6GiJtOVtz2F3hRmg_6cb96b8afaff441183435c39489909f0.mp4",
+      "latency_seconds": 39.8,
+      "cost_usd_estimate": 0.075,
+      "response_id": "6cb96b8afaff441183435c39489909f0.mp4"
+    },
+    {
+      "shot_id": "shot_0",
+      "provider": "veo3.1-lite",
+      "endpoint_id": "fal-ai/veo3.1/lite",
+      "prompt": "Isometric wide angle view over a Minecraft grassy terrain with marked plots and a road.\nMaintain continuity: Maintain consistent Minecraft shader lighting and texture pack.; Maintain consistent Minecraft shaderpack with soft directional sunlight and realistic foliage shadows.; Preserve 9:16 vertical orientation with all critical UI and overlay text centered within safety zones.; Voiceover must remain calm, rhythmic, British-accented, and synchronized to building actions.; Continuous subtle background acoustic guitar or lo-fi instrumental mix throughout.\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_0_veo3.1-lite.mp4",
+      "clip_url": "https://v3b.fal.media/files/b/0aa90ccf/UGV1VgvdAhFZ9emiKKsRu_c49a8db1ee6c4087a9b12175d6dcf243.mp4",
+      "latency_seconds": 34.2,
+      "cost_usd_estimate": 0.2,
+      "response_id": "c49a8db1ee6c4087a9b12175d6dcf243.mp4"
+    },
+    {
+      "shot_id": "shot_1",
+      "provider": "omni-flash",
+      "endpoint_id": "google/gemini-omni-flash/v1.1/text-to-video",
+      "prompt": "Timelapse of brick walls rising on a Minecraft plot.\nMaintain continuity: Match house outline from shot 0.; Maintain consistent Minecraft shaderpack with soft directional sunlight and realistic foliage shadows.; Preserve 9:16 vertical orientation with all critical UI and overlay text centered within safety zones.; Voiceover must remain calm, rhythmic, British-accented, and synchronized to building actions.; Continuous subtle background acoustic guitar or lo-fi instrumental mix throughout.\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_1_omni-flash.mp4",
+      "clip_url": "https://v3b.fal.media/files/b/0aa90cec/rzjgrbUSGEAzBdQBmaojl_c3ec641af9ba4408a6cb1c6ab1812d05.mp4",
+      "latency_seconds": 55.9,
+      "cost_usd_estimate": 0.075,
+      "response_id": "c3ec641af9ba4408a6cb1c6ab1812d05.mp4"
+    },
+    {
+      "shot_id": "shot_1",
+      "provider": "veo3.1-lite",
+      "endpoint_id": "fal-ai/veo3.1/lite",
+      "prompt": "Timelapse of brick walls rising on a Minecraft plot.\nMaintain continuity: Match house outline from shot 0.; Maintain consistent Minecraft shaderpack with soft directional sunlight and realistic foliage shadows.; Preserve 9:16 vertical orientation with all critical UI and overlay text centered within safety zones.; Voiceover must remain calm, rhythmic, British-accented, and synchronized to building actions.; Continuous subtle background acoustic guitar or lo-fi instrumental mix throughout.\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_1_veo3.1-lite.mp4",
+      "clip_url": "https://v3b.fal.media/files/b/0aa90cf0/7c-Npg5X4wCnmAnnlUcSV_989ef11de7264a9482385a6d6214af50.mp4",
+      "latency_seconds": 39.7,
+      "cost_usd_estimate": 0.2,
+      "response_id": "989ef11de7264a9482385a6d6214af50.mp4"
+    },
+    {
+      "shot_id": "shot_2",
+      "provider": "omni-flash",
+      "endpoint_id": "google/gemini-omni-flash/v1.1/text-to-video",
+      "prompt": "Front elevation of a Minecraft double-gable suburban house with roof completed.\nMaintain continuity: Retain roof style and block palette.; Maintain consistent Minecraft shaderpack with soft directional sunlight and realistic foliage shadows.; Preserve 9:16 vertical orientation with all critical UI and overlay text centered within safety zones.; Voiceover must remain calm, rhythmic, British-accented, and synchronized to building actions.; Continuous subtle background acoustic guitar or lo-fi instrumental mix throughout.\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_2_omni-flash.mp4",
+      "clip_url": "https://v3b.fal.media/files/b/0aa90cde/xc9vk9fPqSpDi23uie_xL_16f48634d164462ea54d8f3f427ea1f7.mp4",
+      "latency_seconds": 39.9,
+      "cost_usd_estimate": 0.075,
+      "response_id": "16f48634d164462ea54d8f3f427ea1f7.mp4"
+    },
+    {
+      "shot_id": "shot_2",
+      "provider": "veo3.1-lite",
+      "endpoint_id": "fal-ai/veo3.1/lite",
+      "prompt": "Front elevation of a Minecraft double-gable suburban house with roof completed.\nMaintain continuity: Retain roof style and block palette.; Maintain consistent Minecraft shaderpack with soft directional sunlight and realistic foliage shadows.; Preserve 9:16 vertical orientation with all critical UI and overlay text centered within safety zones.; Voiceover must remain calm, rhythmic, British-accented, and synchronized to building actions.; Continuous subtle background acoustic guitar or lo-fi instrumental mix throughout.\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_2_veo3.1-lite.mp4",
+      "clip_url": "https://v3b.fal.media/files/b/0aa90ce1/w-PkwY_Ewe6gibhXFzE5k_94189cdacab043c3b1818f5f1a5f97a3.mp4",
+      "latency_seconds": 34.2,
+      "cost_usd_estimate": 0.2,
+      "response_id": "94189cdacab043c3b1818f5f1a5f97a3.mp4"
+    }
+  ],
+  "cost_usd_estimate_total": 0.825
+}
