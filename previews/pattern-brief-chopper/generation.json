@@ -1,0 +1,84 @@
+{
+  "created_at": "2026-09-04T13:36:50.539446+00:00",
+  "prompt_version": "creativeir-shot-gen-v0.1",
+  "aspect_ratio": "9:16",
+  "providers": [
+    "omni-flash",
+    "veo3.1-lite"
+  ],
+  "shots": [
+    {
+      "shot_id": "shot_0",
+      "provider": "omni-flash",
+      "endpoint_id": "google/gemini-omni-flash/v1.1/text-to-video",
+      "prompt": "POV hands in a home kitchen chopping onions with a knife on a cluttered cutting board, teary squinting eyes implied by slow frustrated cutting, messy onion skins around: the tedious prep problem, framed as the pain the product removes.\nMaintain continuity: Same home kitchen as later shots; Warm daylight; Vertical 9:16 phone-shot realism; Vertical 9:16 TikTok-native framing; Total hook <= 12 seconds; Arc: problem -> proof -> verbal CTA (problem_proof_cta); Hook type: product_promise + visual_novelty; No on-screen captions or watermarks\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_0_omni-flash.mp4",
+      "clip_url": "(cached from a previous run)",
+      "latency_seconds": 0.0,
+      "cost_usd_estimate": 0.0,
+      "response_id": "cached"
+    },
+    {
+      "shot_id": "shot_0",
+      "provider": "veo3.1-lite",
+      "endpoint_id": "fal-ai/veo3.1/lite",
+      "prompt": "POV hands in a home kitchen chopping onions with a knife on a cluttered cutting board, teary squinting eyes implied by slow frustrated cutting, messy onion skins around: the tedious prep problem, framed as the pain the product removes.\nMaintain continuity: Same home kitchen as later shots; Warm daylight; Vertical 9:16 phone-shot realism; Vertical 9:16 TikTok-native framing; Total hook <= 12 seconds; Arc: problem -> proof -> verbal CTA (problem_proof_cta); Hook type: product_promise + visual_novelty; No on-screen captions or watermarks\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_0_veo3.1-lite.mp4",
+      "clip_url": "(cached from a previous run)",
+      "latency_seconds": 0.0,
+      "cost_usd_estimate": 0.0,
+      "response_id": "cached"
+    },
+    {
+      "shot_id": "shot_1",
+      "provider": "omni-flash",
+      "endpoint_id": "google/gemini-omni-flash/v1.1/text-to-video",
+      "prompt": "Top-down close-up: half an onion placed on the chopper blade grid, the lid pressed down firmly in one satisfying motion, perfect dice cubes falling into the clear catch container below. The visually novel press-and-dice payoff moment, sharp focus on the cubes.\nMaintain continuity: Same kitchen counter as shot_0; Product: Push-press 4-in-1 vegetable chopper (Fullstar-style): heavy base, interchangeable dice/slice/spiralize blades, diced pieces fall into a lidded catch container, ~$25-30, sold on Amazon with 100k+ reviews.; Vertical 9:16 TikTok-native framing; Total hook <= 12 seconds; Arc: problem -> proof -> verbal CTA (problem_proof_cta); Hook type: product_promise + visual_novelty; No on-screen captions or watermarks\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_1_omni-flash.mp4",
+      "clip_url": "(cached from a previous run)",
+      "latency_seconds": 0.0,
+      "cost_usd_estimate": 0.0,
+      "response_id": "cached"
+    },
+    {
+      "shot_id": "shot_1",
+      "provider": "veo3.1-lite",
+      "endpoint_id": "fal-ai/veo3.1/lite",
+      "prompt": "Top-down close-up: half an onion placed on the chopper blade grid, the lid pressed down firmly in one satisfying motion, perfect dice cubes falling into the clear catch container below. The visually novel press-and-dice payoff moment, sharp focus on the cubes.\nMaintain continuity: Same kitchen counter as shot_0; Product: Push-press 4-in-1 vegetable chopper (Fullstar-style): heavy base, interchangeable dice/slice/spiralize blades, diced pieces fall into a lidded catch container, ~$25-30, sold on Amazon with 100k+ reviews.; Vertical 9:16 TikTok-native framing; Total hook <= 12 seconds; Arc: problem -> proof -> verbal CTA (problem_proof_cta); Hook type: product_promise + visual_novelty; No on-screen captions or watermarks\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_1_veo3.1-lite.mp4",
+      "clip_url": "(cached from a previous run)",
+      "latency_seconds": 0.0,
+      "cost_usd_estimate": 0.0,
+      "response_id": "cached"
+    },
+    {
+      "shot_id": "shot_2",
+      "provider": "omni-flash",
+      "endpoint_id": "google/gemini-omni-flash/v1.1/text-to-video",
+      "prompt": "Creator facing camera holding the chopper with the diced onion bowl, talking to camera with genuine enthusiasm about using it every day for meal prep, ends on a short verbal call to action pointing to the link in bio. No on-screen text overlays.\nMaintain continuity: Same creator outfit and kitchen as previous shots; Personal-experience tone, conversational; CTA is verbal only, no rendered text; Vertical 9:16 TikTok-native framing; Total hook <= 12 seconds; Arc: problem -> proof -> verbal CTA (problem_proof_cta); Hook type: product_promise + visual_novelty; No on-screen captions or watermarks\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_2_omni-flash.mp4",
+      "clip_url": "https://v3b.fal.media/files/b/0aa91429/FbxMrgNXZzTaakOJ-W6xb_0d5413aa70384d38aa8e2f6cc1d74c42.mp4",
+      "latency_seconds": 50.8,
+      "cost_usd_estimate": 0.075,
+      "response_id": "0d5413aa70384d38aa8e2f6cc1d74c42.mp4"
+    },
+    {
+      "shot_id": "shot_2",
+      "provider": "veo3.1-lite",
+      "endpoint_id": "fal-ai/veo3.1/lite",
+      "prompt": "Creator facing camera holding the chopper with the diced onion bowl, talking to camera with genuine enthusiasm about using it every day for meal prep, ends on a short verbal call to action pointing to the link in bio. No on-screen text overlays.\nMaintain continuity: Same creator outfit and kitchen as previous shots; Personal-experience tone, conversational; CTA is verbal only, no rendered text; Vertical 9:16 TikTok-native framing; Total hook <= 12 seconds; Arc: problem -> proof -> verbal CTA (problem_proof_cta); Hook type: product_promise + visual_novelty; No on-screen captions or watermarks\nVertical 9:16 short-form video, single continuous shot, no captions or watermarks unless explicitly described.",
+      "duration_s": 4,
+      "clip": "shot_2_veo3.1-lite.mp4",
+      "clip_url": "https://v3b.fal.media/files/b/0aa9142d/_WRPoGXZRW4647VWFtZ6y_b458e4ff49ba4ddc814e398ff3c9b4da.mp4",
+      "latency_seconds": 34.2,
+      "cost_usd_estimate": 0.2,
+      "response_id": "b458e4ff49ba4ddc814e398ff3c9b4da.mp4"
+    }
+  ],
+  "cost_usd_estimate_total": 0.275
+}

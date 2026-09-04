@@ -1,0 +1,101 @@
+{
+  "creative_ir_version": "0.1",
+  "source": {
+    "observed": {
+      "platform": "tiktok",
+      "video_id": "pattern-brief-chopper"
+    }
+  },
+  "observed": {
+    "shots": [
+      {
+        "shot_id": "shot_0",
+        "time_range": {
+          "start_seconds": 0.0,
+          "end_seconds": 4.0
+        },
+        "generation": {
+          "reconstruction_prompt": "POV hands in a home kitchen chopping onions with a knife on a cluttered cutting board, teary squinting eyes implied by slow frustrated cutting, messy onion skins around: the tedious prep problem, framed as the pain the product removes.",
+          "continuity_requirements": [
+            "Same home kitchen as later shots",
+            "Warm daylight",
+            "Vertical 9:16 phone-shot realism"
+          ]
+        },
+        "inferred": {
+          "semantic_role": "setup"
+        }
+      },
+      {
+        "shot_id": "shot_1",
+        "time_range": {
+          "start_seconds": 4.0,
+          "end_seconds": 8.0
+        },
+        "generation": {
+          "reconstruction_prompt": "Top-down close-up: half an onion placed on the chopper blade grid, the lid pressed down firmly in one satisfying motion, perfect dice cubes falling into the clear catch container below. The visually novel press-and-dice payoff moment, sharp focus on the cubes.",
+          "continuity_requirements": [
+            "Same kitchen counter as shot_0",
+            "Product: Push-press 4-in-1 vegetable chopper (Fullstar-style): heavy base, interchangeable dice/slice/spiralize blades, diced pieces fall into a lidded catch container, ~$25-30, sold on Amazon with 100k+ reviews."
+          ]
+        },
+        "inferred": {
+          "semantic_role": "reveal",
+          "attention_mechanisms": [
+            "visual_novelty"
+          ]
+        }
+      },
+      {
+        "shot_id": "shot_2",
+        "time_range": {
+          "start_seconds": 8.0,
+          "end_seconds": 12.0
+        },
+        "generation": {
+          "reconstruction_prompt": "Creator facing camera holding the chopper with the diced onion bowl, talking to camera with genuine enthusiasm about using it every day for meal prep, ends on a short verbal call to action pointing to the link in bio. No on-screen text overlays.",
+          "continuity_requirements": [
+            "Same creator outfit and kitchen as previous shots",
+            "Personal-experience tone, conversational",
+            "CTA is verbal only, no rendered text"
+          ]
+        },
+        "inferred": {
+          "semantic_role": "cta",
+          "attention_mechanisms": [
+            "personal_experience",
+            "social_proof"
+          ]
+        }
+      }
+    ],
+    "hook": {
+      "shot_ids": [
+        "shot_0",
+        "shot_1",
+        "shot_2"
+      ]
+    },
+    "marketing": {
+      "engagement_devices": [
+        "personal_experience",
+        "before_after"
+      ]
+    }
+  },
+  "generation": {
+    "shot_order": [
+      "shot_0",
+      "shot_1",
+      "shot_2"
+    ],
+    "global_constraints": [
+      "Vertical 9:16 TikTok-native framing",
+      "Total hook <= 12 seconds",
+      "Arc: problem -> proof -> verbal CTA (problem_proof_cta)",
+      "Hook type: product_promise + visual_novelty",
+      "No on-screen captions or watermarks"
+    ],
+    "global_reconstruction_brief": "Affiliate hook for Push-press 4-in-1 vegetable chopper (Fullstar-style): heavy base, interchangeable dice/slice/spiralize blades, diced pieces fall into a lidded catch container, ~$25-30, sold on Amazon with 100k+ reviews. Structure: problem (knife prep pain) -> proof (satisfying press-and-dice) -> personal experience with verbal CTA. Creator dialogue throughout, warm home kitchen, vertical."
+  }
+}
