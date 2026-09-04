@@ -437,3 +437,24 @@ def test_collect_video_keyword_filter(tmp_path, monkeypatch):
     outcome2 = pilot_mod.collect_video("https://www.tiktok.com/@chef/video/vid2", tmp_path / "vid2", keywords=["chopper", "fullstar"])
     assert outcome2 == "collected"
     assert (tmp_path / "vid2" / "video.mp4").exists()
+
+
+def test_cmd_run_keyword_filter_skips_mismatch(tmp_path, monkeypatch):
+    import pilot as pilot_mod
+
+    for vid, caption in (("match1", "Fullstar vegetable chopper review"), ("nope1", "random vlog")):
+        d = tmp_path / vid
+        d.mkdir(parents=True)
+        (d / "video.mp4").write_bytes(b"media")
+        (d / "metadata.json").write_text(json.dumps({"video_id": vid, "caption": caption, "source_url": "u"}))
+
+    monkeypatch.setattr(pilot_mod, "RECORDS_DIR", tmp_path)
+    monkeypatch.setattr(pilot_mod, "_recorded_cost", lambda: 0.0)
+    monkeypatch.setattr(pilot_mod, "has_video_stream", lambda path: True)
+    monkeypatch.setattr(pilot_mod, "decompile_video", lambda *a, **k: {"cost_usd_total": 0.1, "calls": []})
+
+    args = type("Args", (), {"limit": None, "workers": 1, "max_cost": 5.0, "keywords": ["chopper", "fullstar"]})()
+    pilot_mod.cmd_run(args)
+
+    assert json.loads((tmp_path / "match1" / "record.json").read_text())["status"] == "ok"
+    assert json.loads((tmp_path / "nope1" / "record.json").read_text())["status"] == "skipped_product_mismatch"

@@ -204,7 +204,7 @@ def _recorded_cost() -> float:
     return total
 
 
-def process_record(record_dir: Path, position: str, model: str, budget: "Budget") -> None:
+def process_record(record_dir: Path, position: str, model: str, budget: "Budget", keywords: list[str] | None = None) -> None:
     """Decompile one record directory with per-video failure isolation."""
     video_id = record_dir.name
     video_path = record_dir / "video.mp4"
@@ -217,6 +217,17 @@ def process_record(record_dir: Path, position: str, model: str, budget: "Budget"
         print(f"{position} {video_id}: missing inputs, skipping", flush=True)
         return
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if not matches_keywords(metadata, keywords or []):
+        record = {
+            "video_id": video_id,
+            "source_url": metadata.get("source_url"),
+            "status": "skipped_product_mismatch",
+            "failure_reason": f"caption/hashtags matched none of {keywords}",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        (record_dir / "record.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+        print(f"{position} {video_id}: skipped (product mismatch)", flush=True)
+        return
     if not has_video_stream(video_path):
         record = {
             "video_id": video_id,
@@ -320,11 +331,11 @@ def cmd_run(args: argparse.Namespace) -> None:
     print(f"Processing {total} records with model {DEFAULT_MODEL} ({workers} workers)", flush=True)
     if workers == 1:
         for i, record_dir in enumerate(record_dirs, 1):
-            process_record(record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget)
+            process_record(record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget, keywords=args.keywords)
     else:
         with ThreadPoolExecutor(max_workers=workers) as pool:
             futures = {
-                pool.submit(process_record, record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget): record_dir
+                pool.submit(process_record, record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget, keywords=args.keywords): record_dir
                 for i, record_dir in enumerate(record_dirs, 1)
             }
             for future in as_completed(futures):
@@ -463,6 +474,7 @@ def main() -> None:
     p_run.add_argument("--limit", type=int, default=None)
     p_run.add_argument("--workers", type=int, default=1, help="parallel decompilation workers")
     p_run.add_argument("--max-cost", type=float, default=None, help="hard spend cap in USD (recorded costs included)")
+    p_run.add_argument("--keywords", nargs="*", default=None, help="only decompile records whose caption/hashtags match any keyword")
     p_run.set_defaults(func=cmd_run)
 
     p_index = sub.add_parser("index", help="build Parquet index")
