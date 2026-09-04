@@ -17,6 +17,7 @@ import requests
 QUEUE_URL = "https://queue.fal.run"
 POLL_INTERVAL_SECONDS = 5.0
 DEFAULT_TIMEOUT_SECONDS = 600
+RETRYABLE_STATUS_CODES = {408, 429, 500, 502, 503, 504}
 DOWNLOAD_CHUNK = 1 << 20
 
 
@@ -104,10 +105,29 @@ def wait_for_result(
         time.sleep(poll_interval)
 
 
-def run(endpoint_id: str, payload: dict, *, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS) -> dict:
-    """Submit and wait for one fal job."""
-    submitted = submit(endpoint_id, payload)
-    return wait_for_result(submitted, timeout_seconds=timeout_seconds)
+def run(
+    endpoint_id: str,
+    payload: dict,
+    *,
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+    retries: int = 3,
+    backoff_seconds: float = 10.0,
+) -> dict:
+    """Submit and wait for one fal job, retrying transient downstream failures."""
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            submitted = submit(endpoint_id, payload)
+            return wait_for_result(submitted, timeout_seconds=timeout_seconds)
+        except FalHTTPError as exc:
+            if exc.status_code not in RETRYABLE_STATUS_CODES:
+                raise
+            last_error = exc
+        except requests.RequestException as exc:
+            last_error = exc
+        if attempt < retries:
+            time.sleep(backoff_seconds * attempt)
+    raise FalError(f"fal job failed after {retries} attempts: {last_error}")
 
 
 def download(url: str, destination: Path, *, chunk_size: int = DOWNLOAD_CHUNK) -> Path:
