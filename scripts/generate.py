@@ -140,11 +140,29 @@ def generate_hook(
         for provider_key in provider_keys:
             provider = PROVIDERS[provider_key]
             payload = build_payload(provider, prompt, duration)
+            clip_path = out_dir / f"{shot.get('shot_id', 'shot')}_{provider_key}.mp4"
+            if clip_path.exists():
+                # resume support: reuse clips already generated for this shot
+                generation_record["shots"].append(
+                    {
+                        "shot_id": shot.get("shot_id"),
+                        "provider": provider_key,
+                        "endpoint_id": provider.endpoint_id,
+                        "prompt": prompt,
+                        "duration_s": duration,
+                        "clip": clip_path.name,
+                        "clip_url": "(cached from a previous run)",
+                        "latency_seconds": 0.0,
+                        "cost_usd_estimate": 0.0,
+                        "response_id": "cached",
+                    }
+                )
+                print(f"  {shot.get('shot_id')} via {provider_key}: cached", flush=True)
+                continue
             started = time.monotonic()
             result = fal_client.run(provider.endpoint_id, payload, timeout_seconds=timeout_seconds)
             elapsed = round(time.monotonic() - started, 1)
             clip_url = _extract_video_url(result)
-            clip_path = out_dir / f"{shot.get('shot_id', 'shot')}_{provider_key}.mp4"
             fal_client.download(clip_url, clip_path)
             generation_record["shots"].append(
                 {
@@ -182,7 +200,7 @@ def _extract_video_url(result: dict) -> str:
 def assemble_hook(clip_paths: list[Path], out_path: Path) -> Path:
     """Concatenate clips into one vertical preview (re-encoded for uniform streams)."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    concat_list = out_path.parent / "concat.txt"
+    concat_list = out_path.parent / f"concat_{out_path.stem}.txt"
     concat_list.write_text("".join(f"file '{p.resolve()}'\n" for p in clip_paths), encoding="utf-8")
     subprocess.run(
         [
@@ -201,6 +219,15 @@ def assemble_hook(clip_paths: list[Path], out_path: Path) -> Path:
     return out_path
 
 
+def assemble_per_provider(generation_record: dict, out_dir: Path) -> list[Path]:
+    """One assembled preview per provider (mixing providers per shot breaks continuity)."""
+    previews = []
+    for provider_key in dict.fromkeys(s["provider"] for s in generation_record["shots"]):
+        clips = [out_dir / s["clip"] for s in generation_record["shots"] if s["provider"] == provider_key]
+        previews.append(assemble_hook(clips, out_dir / f"hook_preview_{provider_key}.mp4"))
+    return previews
+
+
 EVAL_PROMPT = """You are auditing a GENERATED video against the decompilation brief it was generated from.
 
 CREATIVE BRIEF (hook section):
@@ -217,6 +244,107 @@ Score fidelity strictly:
 
 Return ONLY a JSON object with keys: shot_scores (list of {{shot_id, provider, coverage, note}}), continuity, verdict, improvements.
 """
+
+
+# Convergent patterns measured across 6 independent creators on the same
+# product (issue #44, docs/affiliate_dataset_report_issue44.md):
+# hook=product_promise (16/17), arc=problem_proof_cta (11/17),
+# personal_experience (11/17), creator dialogue (12/17),
+# before/after (8/17), CTA verbal/bio only (0/17 on-screen).
+PATTERN_SOURCE = "docs/affiliate_dataset_report_issue44.md"
+PATTERN_BRIEF_VERSION = "pattern-informed-hook-v0.1"
+
+PRODUCT_FACTS = (
+    "Push-press 4-in-1 vegetable chopper (Fullstar-style): heavy base, interchangeable "
+    "dice/slice/spiralize blades, diced pieces fall into a lidded catch container, ~$25-30, "
+    "sold on Amazon with 100k+ reviews."
+)
+
+
+def build_pattern_brief() -> dict:
+    """Synthesize a 3-shot affiliate hook IR from the measured dataset patterns.
+
+    Deterministic: the patterns and product facts above fully determine the
+    shots; no model call is involved in building the brief.
+    """
+    return {
+        "creative_ir_version": "0.1",
+        "source": {"observed": {"platform": "tiktok", "video_id": "pattern-brief-chopper"}},
+        "observed": {
+            "shots": [
+                {
+                    "shot_id": "shot_0",
+                    "time_range": {"start_seconds": 0.0, "end_seconds": 4.0},
+                    "generation": {
+                        "reconstruction_prompt": (
+                            "POV hands in a home kitchen chopping onions with a knife on a cluttered "
+                            "cutting board, teary squinting eyes implied by slow frustrated cutting, "
+                            "messy onion skins around: the tedious prep problem, framed as the pain "
+                            "the product removes."
+                        ),
+                        "continuity_requirements": [
+                            "Same home kitchen as later shots",
+                            "Warm daylight",
+                            "Vertical 9:16 phone-shot realism",
+                        ],
+                    },
+                    "inferred": {"semantic_role": "setup"},
+                },
+                {
+                    "shot_id": "shot_1",
+                    "time_range": {"start_seconds": 4.0, "end_seconds": 8.0},
+                    "generation": {
+                        "reconstruction_prompt": (
+                            "Top-down close-up: half an onion placed on the chopper blade grid, "
+                            "the lid pressed down firmly in one satisfying motion, perfect dice "
+                            "cubes falling into the clear catch container below. The visually "
+                            "novel press-and-dice payoff moment, sharp focus on the cubes."
+                        ),
+                        "continuity_requirements": [
+                            "Same kitchen counter as shot_0",
+                            "Product: " + PRODUCT_FACTS,
+                        ],
+                    },
+                    "inferred": {"semantic_role": "reveal", "attention_mechanisms": ["visual_novelty"]},
+                },
+                {
+                    "shot_id": "shot_2",
+                    "time_range": {"start_seconds": 8.0, "end_seconds": 12.0},
+                    "generation": {
+                        "reconstruction_prompt": (
+                            "Creator facing camera holding the chopper with the diced onion bowl, "
+                            "talking to camera with genuine enthusiasm about using it every day "
+                            "for meal prep, ends on a short verbal call to action pointing to the "
+                            "link in bio. No on-screen text overlays."
+                        ),
+                        "continuity_requirements": [
+                            "Same creator outfit and kitchen as previous shots",
+                            "Personal-experience tone, conversational",
+                            "CTA is verbal only, no rendered text",
+                        ],
+                    },
+                    "inferred": {"semantic_role": "cta", "attention_mechanisms": ["personal_experience", "social_proof"]},
+                },
+            ],
+            "hook": {"shot_ids": ["shot_0", "shot_1", "shot_2"]},
+            "marketing": {"engagement_devices": ["personal_experience", "before_after"]},
+        },
+        "generation": {
+            "shot_order": ["shot_0", "shot_1", "shot_2"],
+            "global_constraints": [
+                "Vertical 9:16 TikTok-native framing",
+                "Total hook <= 12 seconds",
+                "Arc: problem -> proof -> verbal CTA (problem_proof_cta)",
+                "Hook type: product_promise + visual_novelty",
+                "No on-screen captions or watermarks",
+            ],
+            "global_reconstruction_brief": (
+                "Affiliate hook for " + PRODUCT_FACTS + " Structure: problem (knife prep pain) "
+                "-> proof (satisfying press-and-dice) -> personal experience with verbal CTA. "
+                "Creator dialogue throughout, warm home kitchen, vertical."
+            ),
+        },
+    }
 
 
 def evaluate_generation(
@@ -255,29 +383,40 @@ def evaluate_generation(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source-video-id", required=True, help="video_id of the dataset record to use")
+    parser.add_argument("--source-video-id", default=None, help="video_id of the dataset record to use")
+    parser.add_argument("--pattern-mode", action="store_true", help="generate from the synthetic #44 pattern brief instead of a dataset record")
     parser.add_argument("--providers", nargs="*", default=["omni-flash", "veo3.1-lite"], choices=sorted(PROVIDERS))
     parser.add_argument("--max-shots", type=int, default=4)
     parser.add_argument("--model", default="google/gemini-3.8-flash", help="Gemini model for evaluation")
     args = parser.parse_args()
 
-    record_dir = REPO_ROOT / "dataset" / "records" / args.source_video_id
-    ir = json.loads((record_dir / "creative_ir.parsed.json").read_text(encoding="utf-8"))
-    out_dir = GEN_SCHEMA_DIR / args.source_video_id
+    out_dir = GEN_SCHEMA_DIR / (args.source_video_id or "pattern-brief-chopper")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Generating hook for {args.source_video_id} with {args.providers}")
-    generation_record = generate_hook(
-        ir, provider_keys=args.providers, max_shots=args.max_shots, out_dir=out_dir
-    )
+    if args.pattern_mode:
+        ir = build_pattern_brief()
+        (out_dir / "pattern_brief.json").write_text(json.dumps(ir, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        generation_record = generate_hook(
+            ir, provider_keys=args.providers, max_shots=args.max_shots, out_dir=out_dir
+        )
+    else:
+        if not args.source_video_id:
+            parser.error("--source-video-id is required unless --pattern-mode is set")
+        record_dir = REPO_ROOT / "dataset" / "records" / args.source_video_id
+        ir = json.loads((record_dir / "creative_ir.parsed.json").read_text(encoding="utf-8"))
+        print(f"Generating hook for {args.source_video_id} with {args.providers}")
+        generation_record = generate_hook(
+            ir, provider_keys=args.providers, max_shots=args.max_shots, out_dir=out_dir
+        )
     print(f"Estimated cost: ${generation_record['cost_usd_estimate_total']}")
 
-    clips = [out_dir / s["clip"] for s in generation_record["shots"]]
-    hook_preview = assemble_hook(clips, out_dir / "hook_preview.mp4")
-    print(f"Assembled: {hook_preview}")
+    previews = assemble_per_provider(generation_record, out_dir)
+    for preview in previews:
+        print(f"Assembled: {preview}")
 
-    evaluation = evaluate_generation(hook_preview, ir, generation_record, out_dir / "evaluation.json", args.model)
-    print(f"Verdict: {evaluation['verdict']} | continuity: {evaluation['continuity']}")
+    if not args.pattern_mode:
+        evaluation = evaluate_generation(hook_preview, ir, generation_record, out_dir / "evaluation.json", args.model)
+        print(f"Verdict: {evaluation['verdict']} | continuity: {evaluation['continuity']}")
 
 
 if __name__ == "__main__":

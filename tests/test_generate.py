@@ -151,3 +151,55 @@ def test_assemble_hook_concatenates(tmp_path):
         clips.append(clip)
     out = assemble_hook(clips, tmp_path / "hook_preview.mp4")
     assert out.exists() and out.stat().st_size > 0
+
+
+def test_build_pattern_brief_encodes_dataset_patterns():
+    brief = generate.build_pattern_brief()
+    shots = brief["observed"]["shots"]
+    assert [s["shot_id"] for s in shots] == ["shot_0", "shot_1", "shot_2"]
+    roles = [s["inferred"]["semantic_role"] for s in shots]
+    assert roles == ["setup", "reveal", "cta"]
+    # problem -> proof -> verbal CTA arc
+    assert "problem" in shots[0]["generation"]["reconstruction_prompt"].lower()
+    assert "press" in shots[1]["generation"]["reconstruction_prompt"].lower()
+    assert "verbal call to action" in shots[2]["generation"]["reconstruction_prompt"].lower()
+    assert "no on-screen text" in shots[2]["generation"]["reconstruction_prompt"].lower()
+    # product facts and pattern provenance are present
+    assert "chopper" in brief["generation"]["global_reconstruction_brief"].lower()
+    assert any("problem_proof_cta" in c for c in brief["generation"]["global_constraints"])
+    # works through the standard generation path
+    prompt = build_shot_prompt(shots[1], brief)
+    assert "press-and-dice" in prompt
+
+
+def test_generate_hook_pattern_brief_mocked(tmp_path, monkeypatch):
+    def fake_run(endpoint_id, payload, timeout_seconds=600):
+        return {"video": {"url": f"http://cdn/{payload['prompt'][:10]}.mp4"}}
+
+    monkeypatch.setattr(fal_client, "run", fake_run)
+    monkeypatch.setattr(fal_client, "download", lambda url, dest, **k: (Path(dest).write_bytes(b"x") or Path(dest)))
+
+    ir = generate.build_pattern_brief()
+    record = generate.generate_hook(ir, provider_keys=["omni-flash"], max_shots=3, out_dir=tmp_path)
+    assert len(record["shots"]) == 3
+    assert all((tmp_path / s["clip"]).exists() for s in record["shots"])
+
+
+def test_assemble_per_provider_builds_one_preview_each(tmp_path):
+    if not (Path(__file__).parent.parent / ".orca" / "drops" / "video.mp4").exists():
+        pytest.skip("No sample video fixture")
+    import subprocess
+
+    clips = []
+    for provider in ("omni-flash", "veo3.1-lite"):
+        for i in range(2):
+            clip = tmp_path / f"shot_{i}_{provider}.mp4"
+            subprocess.run(
+                ["ffmpeg", "-y", "-f", "lavfi", "-i", f"color=c=green:size=320x568:duration=0.4",
+                 "-c:v", "libx264", "-pix_fmt", "yuv420p", str(clip)],
+                capture_output=True, check=True,
+            )
+            clips.append({"shot_id": f"shot_{i}", "provider": provider, "clip": clip.name})
+    previews = generate.assemble_per_provider({"shots": clips}, tmp_path)
+    assert len(previews) == 2
+    assert all(p.exists() and p.stat().st_size > 0 for p in previews)
