@@ -55,6 +55,71 @@ PROVIDERS: dict[str, Provider] = {
     ),
 }
 
+# v2: chained-frames pipeline endpoints
+I2V_ENDPOINTS = {
+    "omni-flash": "google/gemini-omni-flash/v1.1/image-to-video",
+    "veo3.1-lite": "fal-ai/veo3.1/lite/image-to-video",
+}
+IMAGE_T2I_ENDPOINT = "fal-ai/nano-banana-2"
+IMAGE_EDIT_ENDPOINT = "fal-ai/nano-banana-2/edit"
+SFX_ENDPOINT = "cassetteai/sound-effects-generator"
+SFX_PRICE_PER_CLIP = 0.03  # estimate; cassetteai bills per generation
+IMAGE_PRICE = 0.04  # nano-banana-2 estimate per image
+
+REALISM_DIRECTIVE = (
+    "Photorealistic, shot on a smartphone, natural window light, real home kitchen, "
+    "shallow depth of field, slight handheld micro-shake, no text, no watermark."
+)
+
+# The three chained first-frames: same counter/light across shots (user feedback:
+# visual coherence), realism directives, per-shot camera motion for dynamism.
+FRAME_PROMPTS = {
+    "shot_0": (
+        "Vertical 9:16 photorealistic photo of a bright modern home kitchen counter. "
+        "Two hands chop onions with a chef knife on a cluttered wooden cutting board, "
+        "onion skins scattered, a half-cut onion in focus. " + REALISM_DIRECTIVE
+    ),
+    "shot_1": (
+        "Same kitchen counter, same lighting and angle as the reference image, but the "
+        "cutting board and onion mess are cleared: a white-and-green push-press vegetable "
+        "chopper sits centered on the counter, half an onion on the blade grid, its clear "
+        "catch container empty and ready. " + REALISM_DIRECTIVE
+    ),
+    "shot_2": (
+        "Same kitchen counter, same lighting: the chopper is now open with its container "
+        "full of perfectly diced onions, and a young home cook stands behind the counter "
+        "holding the chopper, smiling at the camera, mid-sentence as if explaining. "
+        + REALISM_DIRECTIVE
+    ),
+}
+
+# Camera motion per shot for the i2v animation pass (dynamism feedback).
+MOTION_PROMPTS = {
+    "shot_0": (
+        "Animate: the hands continue chopping the onion with quick frustrated strokes, "
+        "slow push-in toward the cutting board, handheld micro-shake, natural motion. "
+        "No scene change."
+    ),
+    "shot_1": (
+        "Animate: a hand presses the chopper lid down firmly in one fast motion, diced "
+        "onion cubes drop into the clear container below, fast punch-in on the falling "
+        "dice, crisp satisfying movement. No scene change."
+    ),
+    "shot_2": (
+        "Animate: the cook talks to the camera with natural gestures, holds up the "
+        "chopper slightly, nods at the diced onion bowl, subtle handheld movement, "
+        "natural talking motion with lips synced to casual speech. No scene change."
+    ),
+}
+
+SFX_PLAN = [
+    {"name": "chop", "prompt": "sharp kitchen knife chopping an onion on a wooden board, single quick chop", "at_seconds": 0.8},
+    {"name": "dice", "prompt": "fresh diced vegetables falling into a plastic container, crisp crunchy rattle", "at_seconds": 4.2},
+    {"name": "whoosh", "prompt": "short clean transition whoosh, subtle", "at_seconds": 7.6},
+]
+CLIP_SECONDS = 4.0  # generated clip length; trimmed at assembly for pace
+KEEP_SECONDS = 3.2  # per-clip duration kept in the final cut (punchier)
+
 
 def build_payload(provider: Provider, prompt: str, duration_s: int) -> dict:
     duration = max(4, min(8, duration_s))
@@ -246,6 +311,165 @@ Return ONLY a JSON object with keys: shot_scores (list of {{shot_id, provider, c
 """
 
 
+def _extract_image_url(result: dict) -> str:
+    images = result.get("images") or []
+    if images and isinstance(images[0], dict) and images[0].get("url"):
+        return images[0]["url"]
+    image = result.get("image") or {}
+    if isinstance(image, dict) and image.get("url"):
+        return image["url"]
+    raise fal_client.FalError(f"No image URL in fal result: {str(result)[:300]}")
+
+
+def generate_first_frame(prompt: str, name: str, out_dir: Path, edit_from: list[str] | None = None) -> str:
+    """Generate (or edit from a reference frame) one photorealistic first-frame image.
+
+    Returns the fal CDN URL, usable directly as the i2v input. Chained edits
+    keep the same counter/lighting across shots (user coherence requirement).
+    """
+    if edit_from:
+        payload = {"prompt": prompt, "image_urls": edit_from, "aspect_ratio": "9:16", "num_images": 1, "resolution": "1K"}
+        endpoint = IMAGE_EDIT_ENDPOINT
+    else:
+        payload = {"prompt": prompt, "aspect_ratio": "9:16", "num_images": 1, "resolution": "1K"}
+        endpoint = IMAGE_T2I_ENDPOINT
+    result = fal_client.run(endpoint, payload)
+    url = _extract_image_url(result)
+    fal_client.download(url, out_dir / f"{name}.jpg")
+    return url
+
+
+def animate_frame(provider_key: str, frame_url: str, motion_prompt: str, duration_s: int) -> dict:
+    """Animate one first-frame with the selected i2v endpoint."""
+    duration = max(4, min(8, duration_s))
+    if provider_key == "omni-flash":
+        payload = {
+            "prompt": motion_prompt,
+            "image_url": frame_url,
+            "duration": duration,
+            "aspect_ratio": ASPECT_RATIO,
+            "resolution": "720p",
+        }
+    elif provider_key == "veo3.1-lite":
+        payload = {
+            "prompt": motion_prompt,
+            "image_url": frame_url,
+            "duration": f"{duration}s",
+            "aspect_ratio": ASPECT_RATIO,
+            "resolution": "720p",
+            "generate_audio": True,
+        }
+    else:
+        raise ValueError(f"Unknown i2v provider: {provider_key}")
+    return fal_client.run(I2V_ENDPOINTS[provider_key], payload)
+
+
+def generate_sfx_clip(prompt: str, seconds: int, name: str, out_dir: Path) -> Path:
+    """Generate one short SFX clip and download it."""
+    result = fal_client.run(SFX_ENDPOINT, {"prompt": prompt, "duration": seconds})
+    audio = result.get("audio") or result.get("audio_file") or {}
+    url = audio.get("url") if isinstance(audio, dict) else None
+    if not url:
+        raise fal_client.FalError(f"No audio URL in fal result: {str(result)[:300]}")
+    return fal_client.download(url, out_dir / f"sfx_{name}.mp3")
+
+
+def sfx_delays(total_seconds: float) -> list[dict]:
+    """Millisecond delays for the SFX plan given the assembled cut timeline."""
+    delays = []
+    for entry in SFX_PLAN:
+        at = min(entry["at_seconds"], max(0.0, total_seconds - 0.4))
+        delays.append({**entry, "delay_ms": int(at * 1000)})
+    return delays
+
+
+def mix_sfx(video_path: Path, sfx_dir: Path, total_seconds: float, out_path: Path) -> Path:
+    """Hard-cut concat already done; overlay SFX at cut timestamps over the video audio."""
+    delays = [e for e in sfx_delays(total_seconds) if (sfx_dir / f"sfx_{e['name']}.mp3").exists()]
+    inputs = ["-i", str(video_path)]
+    filters = []
+    mix_inputs = "[0:a]"
+    for i, entry in enumerate(delays, 1):
+        inputs += ["-i", str(sfx_dir / f"sfx_{entry['name']}.mp3")]
+        filters.append(f"[{i}:a]adelay={entry['delay_ms']}|{entry['delay_ms']}[sfx{i}]")
+        mix_inputs += f"[sfx{i}]"
+    filters.append(f"{mix_inputs}amix=inputs={len(delays) + 1}:duration=first:normalize=0[aout]")
+    cmd = ["ffmpeg", "-y", *inputs, "-filter_complex", ";".join(filters), "-map", "0:v", "-map", "[aout]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", str(out_path)]
+    subprocess.run(cmd, capture_output=True, check=True)
+    return out_path
+
+
+def trim_clip(clip_path: Path, out_path: Path, keep_seconds: float) -> Path:
+    subprocess.run(
+        ["ffmpeg", "-y", "-i", str(clip_path), "-t", f"{keep_seconds}", "-c:v", "libx264", "-crf", "23", "-preset", "fast", "-c:a", "aac", "-b:a", "128k", str(out_path)],
+        capture_output=True,
+        check=True,
+    )
+    return out_path
+
+
+def generate_frames_flow(out_dir: Path, providers: list[str], timeout_seconds: int = fal_client.DEFAULT_TIMEOUT_SECONDS) -> dict:
+    """v2 flow: chained frames -> i2v -> assembly with SFX. Resume-aware."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    gen_path = out_dir / "generation.json"
+    if gen_path.exists():
+        # resume: reload frame URLs and prior steps from the previous run
+        record = json.loads(gen_path.read_text(encoding="utf-8"))
+    else:
+        record = {
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "mode": "frames-v2",
+            "prompt_version": PATTERN_BRIEF_VERSION,
+            "steps": [],
+        }
+    frame_urls: dict[str, str] = {}
+    for shot_id, prompt in FRAME_PROMPTS.items():
+        frame_path = out_dir / f"{shot_id}_frame.jpg"
+        if frame_path.exists():
+            prev_url = None
+            for s in record["steps"]:
+                if s.get("frame") == frame_path.name:
+                    prev_url = s.get("frame_url")
+            if prev_url:
+                frame_urls[shot_id] = prev_url
+                print(f"  {shot_id} frame: cached", flush=True)
+                continue
+            raise fal_client.FalError(f"{frame_path} exists but no cached URL; delete it and re-run")
+        edit_from = [frame_urls["shot_0"]] if shot_id == "shot_1" else ([frame_urls["shot_1"]] if shot_id == "shot_2" else None)
+        url = generate_first_frame(prompt, shot_id + "_frame", out_dir, edit_from=edit_from)
+        frame_urls[shot_id] = url
+        record["steps"].append({"step": "frame", "shot_id": shot_id, "frame": frame_path.name, "frame_url": url, "cost_usd_estimate": IMAGE_PRICE})
+        print(f"  {shot_id} frame: {url[:80]}", flush=True)
+
+    clips: list[dict] = []
+    for shot_id in FRAME_PROMPTS:
+        for provider_key in providers:
+            clip_path = out_dir / f"{shot_id}_{provider_key}_i2v.mp4"
+            if clip_path.exists():
+                clips.append({"shot_id": shot_id, "provider": provider_key, "clip": clip_path.name, "cost_usd_estimate": 0.0})
+                print(f"  {shot_id} via {provider_key}: cached", flush=True)
+                continue
+            result = animate_frame(provider_key, frame_urls[shot_id], MOTION_PROMPTS[shot_id], int(CLIP_SECONDS))
+            clip_url = _extract_video_url(result)
+            fal_client.download(clip_url, clip_path)
+            cost = PROVIDERS[provider_key].estimate_cost(int(CLIP_SECONDS))
+            clips.append({"shot_id": shot_id, "provider": provider_key, "clip": clip_path.name, "cost_usd_estimate": cost})
+            record["steps"].append({"step": "animate", "shot_id": shot_id, "provider": provider_key, "clip": clip_path.name, "cost_usd_estimate": cost})
+            print(f"  {shot_id} via {provider_key}: animated, ~${cost}", flush=True)
+
+    for entry in SFX_PLAN:
+        sfx_path = out_dir / f"sfx_{entry['name']}.mp3"
+        if sfx_path.exists():
+            continue
+        generate_sfx_clip(entry["prompt"], 2, entry["name"], out_dir)
+        record["steps"].append({"step": "sfx", "name": entry["name"], "cost_usd_estimate": SFX_PRICE_PER_CLIP})
+        print(f"  sfx {entry['name']}: generated", flush=True)
+
+    record["cost_usd_estimate_total"] = round(sum(s.get("cost_usd_estimate", 0.0) for s in record["steps"]), 4)
+    (out_dir / "generation.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    return record
+
+
 # Convergent patterns measured across 6 independent creators on the same
 # product (issue #44, docs/affiliate_dataset_report_issue44.md):
 # hook=product_promise (16/17), arc=problem_proof_cta (11/17),
@@ -381,10 +605,34 @@ def evaluate_generation(
     return record
 
 
+def assemble_frames_flow(record: dict, out_dir: Path, providers: list[str]) -> list[Path]:
+    """Trim clips for pace, hard-cut concat per provider, then mix SFX at cut points."""
+    previews = []
+    total = round(KEEP_SECONDS * len(FRAME_PROMPTS), 2)
+    for provider_key in providers:
+        trimmed = []
+        for shot_id in FRAME_PROMPTS:
+            trimmed.append(trim_clip(out_dir / f"{shot_id}_{provider_key}.mp4", out_dir / f"{shot_id}_{provider_key}_trim.mp4", KEEP_SECONDS))
+        concat_list = out_dir / f"concat_{provider_key}.txt"
+        concat_list.write_text("".join(f"file '{p.resolve()}'\n" for p in trimmed), encoding="utf-8")
+        base = out_dir / f"hook_base_{provider_key}.mp4"
+        subprocess.run(
+            ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list), "-c:v", "libx264", "-crf", "23", "-preset", "fast", "-c:a", "aac", "-b:a", "128k", str(base)],
+            capture_output=True,
+            check=True,
+        )
+        concat_list.unlink()
+        preview = mix_sfx(base, out_dir, total, out_dir / f"hook_preview_{provider_key}.mp4")
+        previews.append(preview)
+        print(f"  preview {provider_key}: {preview.name} ({total}s, SFX mixed)", flush=True)
+    return previews
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-video-id", default=None, help="video_id of the dataset record to use")
     parser.add_argument("--pattern-mode", action="store_true", help="generate from the synthetic #44 pattern brief instead of a dataset record")
+    parser.add_argument("--mode", choices=["t2v", "frames"], default="t2v", help="t2v = text-to-video v1; frames = chained frames + i2v + SFX (v2)")
     parser.add_argument("--providers", nargs="*", default=["omni-flash", "veo3.1-lite"], choices=sorted(PROVIDERS))
     parser.add_argument("--max-shots", type=int, default=4)
     parser.add_argument("--model", default="google/gemini-3.8-flash", help="Gemini model for evaluation")
@@ -392,6 +640,13 @@ def main() -> None:
 
     out_dir = GEN_SCHEMA_DIR / (args.source_video_id or "pattern-brief-chopper")
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.mode == "frames":
+        record = generate_frames_flow(out_dir, args.providers)
+        print(f"Estimated cost: ${record['cost_usd_estimate_total']}")
+        for preview in assemble_frames_flow(record, out_dir, args.providers):
+            print(f"Assembled: {preview}")
+        return
 
     if args.pattern_mode:
         ir = build_pattern_brief()
@@ -415,7 +670,7 @@ def main() -> None:
         print(f"Assembled: {preview}")
 
     if not args.pattern_mode:
-        evaluation = evaluate_generation(hook_preview, ir, generation_record, out_dir / "evaluation.json", args.model)
+        evaluation = evaluate_generation(hook_preview := previews[0], ir, generation_record, out_dir / "evaluation.json", args.model)
         print(f"Verdict: {evaluation['verdict']} | continuity: {evaluation['continuity']}")
 
 
