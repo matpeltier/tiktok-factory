@@ -46,6 +46,18 @@ def _ytdlp(args: list[str], timeout: int = 300) -> str:
     return result.stdout
 
 
+def _norm(text: str) -> str:
+    return " ".join((text or "").lower().split())
+
+
+def matches_keywords(metadata: dict, keywords: list[str]) -> bool:
+    """True if any keyword appears in the caption or hashtags."""
+    if not keywords:
+        return True
+    haystack = _norm(" ".join([metadata.get("caption") or "", " ".join(metadata.get("hashtags") or [])]))
+    return any(_norm(k) in haystack for k in keywords)
+
+
 def normalize_metadata(info: dict, url: str) -> dict:
     """Reduce raw yt-dlp info to the metadata shape used by the pipeline prompts."""
     hashtags = info.get("hashtags") or []
@@ -68,15 +80,30 @@ def normalize_metadata(info: dict, url: str) -> dict:
     }
 
 
-def list_creator_videos(creator: str, limit: int) -> list[str]:
-    """Return up to `limit` recent video URLs for a creator profile."""
-    out = _ytdlp(["--flat-playlist", "--print", "%(id)s", f"https://www.tiktok.com/@{creator}"], timeout=600)
-    ids = [line.strip() for line in out.splitlines() if line.strip()]
-    return [f"https://www.tiktok.com/@{creator}/video/{vid}" for vid in ids[:limit]]
+def list_creator_videos(creator: str, limit: int, keywords: list[str] | None = None) -> list[str]:
+    """Return up to `limit` recent video URLs for a creator profile.
+
+    When keywords are provided, listing titles (captions) are filtered in
+    Python BEFORE any download, so off-product videos cost nothing.
+    """
+    out = _ytdlp(
+        ["--flat-playlist", "--print", "%(id)s\t%(title).400s", f"https://www.tiktok.com/@{creator}"],
+        timeout=600,
+    )
+    pairs = []
+    for line in out.splitlines():
+        if "\t" not in line:
+            continue
+        vid, title = line.split("\t", 1)
+        pairs.append((vid.strip(), title))
+    if keywords:
+        kw = [k.lower() for k in keywords]
+        pairs = [pair for pair in pairs if any(k in pair[1].lower() for k in kw)]
+    return [f"https://www.tiktok.com/@{creator}/video/{vid}" for vid, _title in pairs[:limit]]
 
 
-def collect_video(url: str, record_dir: Path) -> None:
-    """Download one video and its raw public metadata into record_dir."""
+def collect_video(url: str, record_dir: Path, keywords: list[str] | None = None) -> str:
+    """Download one video + raw metadata; returns 'collected' or 'skipped_product_mismatch'."""
     record_dir.mkdir(parents=True, exist_ok=True)
     _ytdlp(
         [
@@ -95,18 +122,43 @@ def collect_video(url: str, record_dir: Path) -> None:
         raise RuntimeError(f"yt-dlp did not write an info json for {url}")
     info = json.loads(info_files[0].read_text(encoding="utf-8"))
     info_files[0].rename(record_dir / "metadata.raw.json")
+    metadata = normalize_metadata(info, url)
     (record_dir / "metadata.json").write_text(
-        json.dumps(normalize_metadata(info, url), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+    if not matches_keywords(metadata, keywords or []):
+        # keep metadata for audit; drop media since no model spend will happen
+        (record_dir / "video.mp4").unlink(missing_ok=True)
+        (record_dir / "record.json").write_text(
+            json.dumps(
+                {
+                    "video_id": metadata.get("video_id"),
+                    "source_url": url,
+                    "status": "skipped_product_mismatch",
+                    "failure_reason": f"caption/hashtags matched none of {keywords}",
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        return "skipped_product_mismatch"
+    return "collected"
 
 
 def cmd_collect(args: argparse.Namespace) -> None:
     limit = args.limit
+    creators = CREATORS if args.creators is None else args.creators
+    quota = max(1, limit // len(creators))
     urls: list[str] = []
-    for creator in (CREATORS if args.creators is None else args.creators):
-        creator_urls = list_creator_videos(creator, limit)
-        print(f"{creator}: {len(creator_urls)} recent videos")
-        urls.extend(creator_urls)
+    for creator in creators:
+        try:
+            creator_urls = list_creator_videos(creator, quota, keywords=args.keywords)
+            print(f"{creator}: {len(creator_urls)} matching videos", flush=True)
+            urls.extend(creator_urls)
+        except Exception as exc:
+            print(f"{creator}: SKIPPED ({exc})", flush=True)
     urls = urls[:limit]
     print(f"Collecting {len(urls)} videos into {RECORDS_DIR}")
     for i, url in enumerate(urls, 1):
@@ -116,10 +168,10 @@ def cmd_collect(args: argparse.Namespace) -> None:
             print(f"[{i}/{len(urls)}] {video_id}: already collected")
             continue
         try:
-            collect_video(url, record_dir)
-            print(f"[{i}/{len(urls)}] {video_id}: collected")
+            outcome = collect_video(url, record_dir, keywords=args.keywords)
+            print(f"[{i}/{len(urls)}] {video_id}: {outcome}", flush=True)
         except Exception as exc:
-            print(f"[{i}/{len(urls)}] {video_id}: FAILED to collect: {exc}")
+            print(f"[{i}/{len(urls)}] {video_id}: FAILED to collect: {exc}", flush=True)
 
 
 def load_record_state(record_dir: Path) -> dict:
@@ -152,7 +204,7 @@ def _recorded_cost() -> float:
     return total
 
 
-def process_record(record_dir: Path, position: str, model: str, budget: "Budget") -> None:
+def process_record(record_dir: Path, position: str, model: str, budget: "Budget", keywords: list[str] | None = None) -> None:
     """Decompile one record directory with per-video failure isolation."""
     video_id = record_dir.name
     video_path = record_dir / "video.mp4"
@@ -165,6 +217,17 @@ def process_record(record_dir: Path, position: str, model: str, budget: "Budget"
         print(f"{position} {video_id}: missing inputs, skipping", flush=True)
         return
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if not matches_keywords(metadata, keywords or []):
+        record = {
+            "video_id": video_id,
+            "source_url": metadata.get("source_url"),
+            "status": "skipped_product_mismatch",
+            "failure_reason": f"caption/hashtags matched none of {keywords}",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        (record_dir / "record.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+        print(f"{position} {video_id}: skipped (product mismatch)", flush=True)
+        return
     if not has_video_stream(video_path):
         record = {
             "video_id": video_id,
@@ -268,11 +331,11 @@ def cmd_run(args: argparse.Namespace) -> None:
     print(f"Processing {total} records with model {DEFAULT_MODEL} ({workers} workers)", flush=True)
     if workers == 1:
         for i, record_dir in enumerate(record_dirs, 1):
-            process_record(record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget)
+            process_record(record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget, keywords=args.keywords)
     else:
         with ThreadPoolExecutor(max_workers=workers) as pool:
             futures = {
-                pool.submit(process_record, record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget): record_dir
+                pool.submit(process_record, record_dir, f"[{i}/{total}]", DEFAULT_MODEL, budget, keywords=args.keywords): record_dir
                 for i, record_dir in enumerate(record_dirs, 1)
             }
             for future in as_completed(futures):
@@ -404,12 +467,14 @@ def main() -> None:
     p_collect = sub.add_parser("collect", help="download videos + metadata")
     p_collect.add_argument("--limit", type=int, default=COLLECT_LIMIT)
     p_collect.add_argument("--creators", nargs="*", default=None)
+    p_collect.add_argument("--keywords", nargs="*", default=None, help="keep only videos whose caption/hashtags match any keyword")
     p_collect.set_defaults(func=cmd_collect)
 
     p_run = sub.add_parser("run", help="decompile collected videos")
     p_run.add_argument("--limit", type=int, default=None)
     p_run.add_argument("--workers", type=int, default=1, help="parallel decompilation workers")
     p_run.add_argument("--max-cost", type=float, default=None, help="hard spend cap in USD (recorded costs included)")
+    p_run.add_argument("--keywords", nargs="*", default=None, help="only decompile records whose caption/hashtags match any keyword")
     p_run.set_defaults(func=cmd_run)
 
     p_index = sub.add_parser("index", help="build Parquet index")

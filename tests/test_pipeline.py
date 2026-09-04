@@ -401,3 +401,72 @@ def test_budget_none_is_unlimited(tmp_path, monkeypatch):
     for _ in range(5):
         assert budget.reserve("m") is True
         budget.commit(100.0)
+
+
+def test_collect_video_keyword_filter(tmp_path, monkeypatch):
+    import pilot as pilot_mod
+
+    info = {"id": "vid1", "description": "Making guacamole with my new gadget!", "uploader": "chef",
+            "hashtags": ["cooktok"], "duration": 15}
+    (tmp_path / "vid1").mkdir(parents=True)
+    (tmp_path / "vid1" / "video.info.json").write_text(json.dumps(info))
+    # yt-dlp creates the media file during download; simulate
+    def fake_ytdlp(args, timeout=300):
+        for a in args:
+            if str(a).endswith("video.mp4"):
+                Path(a).write_bytes(b"media")
+        return ""
+    monkeypatch.setattr(pilot_mod, "_ytdlp", fake_ytdlp)
+
+    outcome = pilot_mod.collect_video("https://www.tiktok.com/@chef/video/vid1", tmp_path / "vid1", keywords=["chopper", "fullstar"])
+    assert outcome == "skipped_product_mismatch"
+    record = json.loads((tmp_path / "vid1" / "record.json").read_text())
+    assert record["status"] == "skipped_product_mismatch"
+    assert not (tmp_path / "vid1" / "video.mp4").exists()
+    assert (tmp_path / "vid1" / "metadata.json").exists()
+
+    info2 = dict(info, id="vid2", description="Fullstar vegetable chopper review")
+    (tmp_path / "vid2").mkdir(parents=True)
+    (tmp_path / "vid2" / "video.info.json").write_text(json.dumps(info2))
+    def fake_ytdlp2(args, timeout=300):
+        for a in args:
+            if str(a).endswith("video.mp4"):
+                Path(a).write_bytes(b"media")
+        return ""
+    monkeypatch.setattr(pilot_mod, "_ytdlp", fake_ytdlp2)
+    outcome2 = pilot_mod.collect_video("https://www.tiktok.com/@chef/video/vid2", tmp_path / "vid2", keywords=["chopper", "fullstar"])
+    assert outcome2 == "collected"
+    assert (tmp_path / "vid2" / "video.mp4").exists()
+
+
+def test_cmd_run_keyword_filter_skips_mismatch(tmp_path, monkeypatch):
+    import pilot as pilot_mod
+
+    for vid, caption in (("match1", "Fullstar vegetable chopper review"), ("nope1", "random vlog")):
+        d = tmp_path / vid
+        d.mkdir(parents=True)
+        (d / "video.mp4").write_bytes(b"media")
+        (d / "metadata.json").write_text(json.dumps({"video_id": vid, "caption": caption, "source_url": "u"}))
+
+    monkeypatch.setattr(pilot_mod, "RECORDS_DIR", tmp_path)
+    monkeypatch.setattr(pilot_mod, "_recorded_cost", lambda: 0.0)
+    monkeypatch.setattr(pilot_mod, "has_video_stream", lambda path: True)
+    monkeypatch.setattr(pilot_mod, "decompile_video", lambda *a, **k: {"cost_usd_total": 0.1, "calls": []})
+
+    args = type("Args", (), {"limit": None, "workers": 1, "max_cost": 5.0, "keywords": ["chopper", "fullstar"]})()
+    pilot_mod.cmd_run(args)
+
+    assert json.loads((tmp_path / "match1" / "record.json").read_text())["status"] == "ok"
+    assert json.loads((tmp_path / "nope1" / "record.json").read_text())["status"] == "skipped_product_mismatch"
+
+
+def test_fill_empty_strings_replaces_violations_and_logs():
+    from pipeline import fill_empty_strings
+
+    ir = _minimal_ir()
+    ir["observed"]["commercial"] = {"offer_text": "", "cta_text": "link in bio", "product_mentions": ["chopper"]}
+    schema = json.loads(SCHEMA_PATH.read_text())
+    filled, log = fill_empty_strings(ir, schema)
+    assert filled["observed"]["commercial"]["offer_text"] == "not_specified"
+    assert filled["observed"]["commercial"]["cta_text"] == "link in bio"
+    assert {"path": "$.observed.commercial.offer_text", "from": "", "to": "not_specified"} in log

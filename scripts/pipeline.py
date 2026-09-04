@@ -540,6 +540,39 @@ def coerce_unknown_enum_values(ir: dict, schema: dict) -> tuple[dict, list]:
     return coerced, coercions
 
 
+def _fill_empty_strings(instance, schema: dict, path: str, fills: list):
+    if isinstance(schema, dict):
+        if instance == "" and schema.get("type") == "string" and schema.get("minLength", 0) >= 1:
+            fills.append({"path": path, "from": "", "to": "not_specified"})
+            return "not_specified"
+        properties = schema.get("properties", {})
+        if properties and isinstance(instance, dict):
+            result = dict(instance)
+            for key, subschema in properties.items():
+                if key in result:
+                    result[key] = _fill_empty_strings(result[key], subschema, f"{path}.{key}", fills)
+            return result
+        items = schema.get("items")
+        if items is not None and isinstance(instance, list):
+            return [_fill_empty_strings(element, items, f"{path}[{i}]", fills) for i, element in enumerate(instance)]
+    return instance
+
+
+def fill_empty_strings(ir: dict, schema: dict) -> tuple[dict, list]:
+    """Replace empty strings that violate schema `minLength: 1` with 'not_specified'.
+
+    Gemini emits "" for fields with nothing to report (e.g. an offer the video
+    does not make); the CreativeIR schema forbids empty strings and offers no
+    null. The substitution is deterministic and logged for provenance.
+
+    Returns ``(filled_ir, fill_log)``.
+    """
+    expanded = resolve_local_ref(schema, schema)
+    fills: list = []
+    filled = _fill_empty_strings(copy.deepcopy(ir), expanded, "$", fills)
+    return filled, fills
+
+
 def merge_creative_ir(shot_ir: dict, synth_global: dict) -> dict:
     """Merge shot analysis and global synthesis into one CreativeIR."""
     merged = copy.deepcopy(shot_ir)
@@ -671,6 +704,8 @@ def decompile_video(
 
             final = strip_meta_keys(canonicalize_ids(merge_creative_ir(shot_injected, synth_result), "merged"))
             final, coercions = coerce_unknown_enum_values(final, schema)
+            final, empty_fills = fill_empty_strings(final, schema)
+            coercions = coercions + empty_fills
             if coercions:
                 (source_dir / "creative_ir.coercions.json").write_text(
                     json.dumps(coercions, indent=2) + "\n", encoding="utf-8"
