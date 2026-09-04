@@ -401,3 +401,39 @@ def test_budget_none_is_unlimited(tmp_path, monkeypatch):
     for _ in range(5):
         assert budget.reserve("m") is True
         budget.commit(100.0)
+
+
+def test_collect_video_keyword_filter(tmp_path, monkeypatch):
+    import pilot as pilot_mod
+
+    info = {"id": "vid1", "description": "Making guacamole with my new gadget!", "uploader": "chef",
+            "hashtags": ["cooktok"], "duration": 15}
+    (tmp_path / "vid1").mkdir(parents=True)
+    (tmp_path / "vid1" / "video.info.json").write_text(json.dumps(info))
+    # yt-dlp creates the media file during download; simulate
+    def fake_ytdlp(args, timeout=300):
+        for a in args:
+            if str(a).endswith("video.mp4"):
+                Path(a).write_bytes(b"media")
+        return ""
+    monkeypatch.setattr(pilot_mod, "_ytdlp", fake_ytdlp)
+
+    outcome = pilot_mod.collect_video("https://www.tiktok.com/@chef/video/vid1", tmp_path / "vid1", keywords=["chopper", "fullstar"])
+    assert outcome == "skipped_product_mismatch"
+    record = json.loads((tmp_path / "vid1" / "record.json").read_text())
+    assert record["status"] == "skipped_product_mismatch"
+    assert not (tmp_path / "vid1" / "video.mp4").exists()
+    assert (tmp_path / "vid1" / "metadata.json").exists()
+
+    info2 = dict(info, id="vid2", description="Fullstar vegetable chopper review")
+    (tmp_path / "vid2").mkdir(parents=True)
+    (tmp_path / "vid2" / "video.info.json").write_text(json.dumps(info2))
+    def fake_ytdlp2(args, timeout=300):
+        for a in args:
+            if str(a).endswith("video.mp4"):
+                Path(a).write_bytes(b"media")
+        return ""
+    monkeypatch.setattr(pilot_mod, "_ytdlp", fake_ytdlp2)
+    outcome2 = pilot_mod.collect_video("https://www.tiktok.com/@chef/video/vid2", tmp_path / "vid2", keywords=["chopper", "fullstar"])
+    assert outcome2 == "collected"
+    assert (tmp_path / "vid2" / "video.mp4").exists()
