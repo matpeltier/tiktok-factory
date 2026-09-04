@@ -203,3 +203,82 @@ def test_assemble_per_provider_builds_one_preview_each(tmp_path):
     previews = generate.assemble_per_provider({"shots": clips}, tmp_path)
     assert len(previews) == 2
     assert all(p.exists() and p.stat().st_size > 0 for p in previews)
+
+
+def test_build_payload_i2v_variants(monkeypatch):
+    payload = generate.animate_frame.__globals__["build_payload"]  # sanity: t2v untouched
+    assert callable(payload)
+    # i2v payloads are built inline in animate_frame; test via mocked fal run
+    captured = {}
+
+    def fake_run(endpoint_id, payload, timeout_seconds=600):
+        captured["endpoint"] = endpoint_id
+        captured["payload"] = payload
+        return {"video": {"url": "http://cdn/v.mp4"}}
+
+    monkeypatch.setattr(fal_client, "run", fake_run)
+    monkeypatch.setattr(fal_client, "download", lambda url, dest, **k: Path(dest).write_bytes(b"x") or Path(dest))
+    generate.animate_frame("omni-flash", "http://img", "zoom in", 4)
+    assert captured["endpoint"] == generate.I2V_ENDPOINTS["omni-flash"]
+    assert captured["payload"]["image_url"] == "http://img"
+    assert captured["payload"]["duration"] == 4
+    generate.animate_frame("veo3.1-lite", "http://img", "talk", 4)
+    assert captured["payload"]["duration"] == "4s"
+    assert captured["payload"]["generate_audio"] is True
+
+
+def test_sfx_delays_clamped_to_timeline():
+    delays = generate.sfx_delays(9.6)
+    assert [d["delay_ms"] for d in delays] == [800, 4200, 7600]
+    short = generate.sfx_delays(6.0)
+    assert all(d["delay_ms"] <= (6.0 - 0.4) * 1000 for d in short)
+
+
+def test_generate_frames_flow_mocked(tmp_path, monkeypatch):
+    urls = iter([f"http://cdn/frame{i}.jpg" for i in range(3)])
+
+    def fake_run(endpoint_id, payload, timeout_seconds=600):
+        if endpoint_id in (generate.IMAGE_T2I_ENDPOINT, generate.IMAGE_EDIT_ENDPOINT):
+            return {"images": [{"url": next(urls)}]}
+        if endpoint_id == generate.SFX_ENDPOINT:
+            return {"audio": {"url": "http://cdn/sfx.mp3"}}
+        return {"video": {"url": f"http://cdn/clip{payload['prompt'][:8]}.mp4"}}
+
+    def fake_download(url, dest, **k):
+        Path(dest).write_bytes(b"data")
+        return Path(dest)
+
+    monkeypatch.setattr(fal_client, "run", fake_run)
+    monkeypatch.setattr(fal_client, "download", fake_download)
+    monkeypatch.setattr(generate, "mix_sfx", lambda base, sfx_dir, total, out: out)
+
+    record = generate.generate_frames_flow(tmp_path, ["omni-flash", "veo3.1-lite"])
+    assert len([s for s in record["steps"] if s["step"] == "frame"]) == 3
+    assert len([s for s in record["steps"] if s["step"] == "sfx"]) == 3
+    assert record["cost_usd_estimate_total"] > 0
+    # shots animated for both providers
+    assert len([s for s in record["steps"] if s["step"] == "animate"]) == 6
+
+
+def test_trim_and_mix_real_ffmpeg(tmp_path):
+    import subprocess
+
+    if not (Path(__file__).parent.parent / ".orca" / "drops" / "video.mp4").exists():
+        pytest.skip("No sample video fixture")
+    clip = tmp_path / "clip.mp4"
+    subprocess.run(
+        ["ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=red:size=320x568:duration=2",
+         "-f", "lavfi", "-i", "sine=frequency=440:duration=2",
+         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", str(clip)],
+        capture_output=True, check=True,
+    )
+    trimmed = generate.trim_clip(clip, tmp_path / "trim.mp4", 1.0)
+    assert trimmed.exists()
+    sfx = tmp_path / "sfx_chop.mp3"
+    subprocess.run(
+        ["ffmpeg", "-y", "-f", "lavfi", "-i", "sine=frequency=880:duration=0.5", str(sfx)],
+        capture_output=True, check=True,
+    )
+    (tmp_path / "sfx_chop.mp3").rename(tmp_path / "sfx_chop.mp3")
+    mixed = generate.mix_sfx(trimmed, tmp_path, 1.0, tmp_path / "mixed.mp4")
+    assert mixed.exists() and mixed.stat().st_size > 0
